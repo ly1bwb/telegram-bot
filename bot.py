@@ -21,6 +21,9 @@ roof_camera_host = "http://192.168.42.177/cgi-bin/hi3510/"
 roof_camera_url = roof_camera_host + "snap.cgi?&-getpic"
 
 lower_camera_url = "http://192.168.42.10/webcam/webcam3.jpg"
+main_camera_url = (
+    "http://192.168.42.183/onvifsnapshot/media_service/snapshot?channel=1&subtype=0"
+)
 
 mqtt_host = "192.168.42.253"
 vhf_rig_freq = "000000000"
@@ -42,6 +45,11 @@ def start(update, context):
 
 def lower_camera(update, context):
     web_file = urllib.request.urlopen(lower_camera_url)
+    context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
+
+
+def main_camera(update, context):
+    web_file = urllib.request.urlopen(main_camera_url)
     context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
 
 
@@ -99,6 +107,8 @@ dispatcher.add_handler(CommandHandler("start", start))
 dispatcher.add_handler(CommandHandler("roof_camera", roof_camera))
 
 dispatcher.add_handler(CommandHandler("lower_camera", lower_camera))
+
+dispatcher.add_handler(CommandHandler("main_camera", main_camera))
 
 dispatcher.add_handler(CommandHandler("vhf_freq", vhf_freq))
 

@@ -37,8 +37,8 @@ def roof_camera(update, context):
     parser.feed(web_cam_html.decode("utf-8"))
 
     web_file = urllib.request.urlopen(parser.roof_camera_img)
-    context.bot.send_document(
-        chat_id=update.effective_chat.id, document=web_file.read()
+    context.bot.send_photo(
+        chat_id=update.effective_chat.id, photo=web_file.read()
     )
 
 

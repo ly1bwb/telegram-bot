@@ -9,6 +9,7 @@ from html.parser import HTMLParser
 from dotenv import load_dotenv
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
+from telegram import ParseMode
 from threading import Thread
 
 load_dotenv()
@@ -22,7 +23,8 @@ roof_camera_url = roof_camera_host + "snap.cgi?&-getpic"
 lower_camera_url = "http://192.168.42.10/webcam/webcam3.jpg"
 
 mqtt_host = "192.168.42.253"
-vhf_rig_freq = "not yet defined"
+vhf_rig_freq = "000000000"
+vhf_rig_mode = "FT8"
 
 
 class webcam_parser(HTMLParser):
@@ -57,19 +59,35 @@ def mqtt_freq_loop():
     logging.info("Connecting to MQTT...")
     mqtt_client.connect(mqtt_host, 1883, 60)
     mqtt_client.on_message = read_mqtt_vhf_freq
-    mqtt_client.subscribe("VURK/radio/FT847/frequency")
+    mqtt_client.subscribe("VURK/radio/FT847/#")
     mqtt_client.loop_forever()
 
 
 def read_mqtt_vhf_freq(client, userdata, message):
     global vhf_rig_freq
-    vhf_rig_freq = str(message.payload.decode("utf-8"))
-    logging.info("MQTT thread: VHF freq: " + vhf_rig_freq)
+    global vhf_rig_mode
+    payload_value = str(message.payload.decode("utf-8"))
+    logging.info("MQTT thread: " + message.topic + ": " + payload_value)
+    if message.topic == "VURK/radio/FT847/frequency":
+        vhf_rig_freq = payload_value
+    if message.topic == "VURK/radio/FT847/mode":
+        vhf_rig_mode = payload_value
 
 
 def vhf_freq(update, context):
-    msg = "VHF rig frequency is " + vhf_rig_freq
-    context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+    f = vhf_rig_freq
+    ff = f[-9] + f[-8] + f[-7] + "," + f[-6] + f[-5] + f[-4] + " MHz"
+    msg = (
+        "VHF stoties dažnis: \n<b>"
+        + ff
+        + " ("
+        + vhf_rig_mode
+        + ")</b>"
+        + "\n👉 <a href='http://sdr.vhf.lt:8000/ft847'>Klausyti gyvai</a>"
+    )
+    context.bot.send_message(
+        chat_id=update.effective_chat.id, text=msg, parse_mode=ParseMode.HTML
+    )
 
 
 logging.basicConfig(

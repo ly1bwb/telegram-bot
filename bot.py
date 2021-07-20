@@ -8,8 +8,8 @@ import paho.mqtt.client as mqtt
 from html.parser import HTMLParser
 from dotenv import load_dotenv
 from telegram.ext import Updater
-from telegram.ext import CommandHandler
-from telegram import ParseMode
+from telegram.ext import CommandHandler, CallbackQueryHandler
+from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from threading import Thread
 
 load_dotenv()
@@ -75,11 +75,43 @@ def read_mqtt_vhf_freq(client, userdata, message):
     global vhf_rig_freq
     global vhf_rig_mode
     payload_value = str(message.payload.decode("utf-8"))
-    logging.info("MQTT thread: " + message.topic + ": " + payload_value)
     if message.topic == "VURK/radio/FT847/frequency":
         vhf_rig_freq = payload_value
     if message.topic == "VURK/radio/FT847/mode":
         vhf_rig_mode = payload_value
+
+
+def set_vhf_freq(update, context):
+    if len(context.args) > 0:
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Dar neimplementuota: " + context.args[-1],
+        )
+    else:
+        options = [
+            [
+                InlineKeyboardButton(text="144,050", callback_data="144050000"),
+                InlineKeyboardButton(text="144,300", callback_data="144300000"),
+                InlineKeyboardButton(text="144,800", callback_data="144800000"),
+            ],
+            [
+                InlineKeyboardButton(text="145,500", callback_data="145500000"),
+                InlineKeyboardButton(text="145,800", callback_data="145800000"),
+                InlineKeyboardButton(text="145,825", callback_data="145825000"),
+            ],
+        ]
+        reply_markup = InlineKeyboardMarkup(options)
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Pasirinkite arba įveskite dažnį:",
+            reply_markup=reply_markup,
+        )
+
+
+def read_vhf_freq(update, context):
+    query = update.callback_query
+    query.answer()
+    query.edit_message_text(text=f"Dar neimplementuota: {query.data}")
 
 
 def vhf_freq(update, context):
@@ -111,6 +143,10 @@ dispatcher.add_handler(CommandHandler("lower_camera", lower_camera))
 dispatcher.add_handler(CommandHandler("main_camera", main_camera))
 
 dispatcher.add_handler(CommandHandler("vhf_freq", vhf_freq))
+
+dispatcher.add_handler(CommandHandler("set_vhf_freq", set_vhf_freq))
+
+dispatcher.add_handler(CallbackQueryHandler(read_vhf_freq))
 
 if __name__ == "__main__":
     telegram_thread = Thread(target=updater.start_polling)

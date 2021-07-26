@@ -78,7 +78,7 @@ def roof_camera(update, context):
     context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
 
 
-def mqtt_freq_loop():
+def mqtt_radio_loop():
     mqtt_client = mqtt.Client()
     mqtt_client.connect(mqtt_host, 1883, 60)
     log.info("Connected to MQTT")
@@ -222,5 +222,5 @@ dispatcher.add_handler(vhf_az_handler)
 if __name__ == "__main__":
     telegram_thread = Thread(target=updater.start_polling)
     telegram_thread.start()
-    mqtt_thread = Thread(target=mqtt_freq_loop)
+    mqtt_thread = Thread(target=mqtt_radio_loop)
     mqtt_thread.start()

@@ -94,11 +94,16 @@ def roof_camera(update, context):
 
 
 def mqtt_radio_loop():
+    mqtt_loop("VURK/radio/FT847/#", read_mqtt_vhf_freq)
+
+
+def mqtt_loop(topic, handler):
     mqtt_client = mqtt.Client()
     mqtt_client.connect(mqtt_host, 1883, 60)
     log.info("Connected to MQTT")
-    mqtt_client.on_message = read_mqtt_vhf_freq
-    mqtt_client.subscribe("VURK/radio/FT847/#")
+    mqtt_client.on_message = handler
+    mqtt_client.subscribe(topic)
+    log.info(f"Subscribed to MQTT: {topic}")
     mqtt_client.loop_forever()
 
 

@@ -9,7 +9,7 @@ from html.parser import HTMLParser
 from dotenv import load_dotenv
 from telegram.ext import Updater
 from telegram.ext import CommandHandler, CallbackQueryHandler, ConversationHandler
-from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton, ChatAction
 from threading import Thread
 
 load_dotenv()
@@ -73,12 +73,18 @@ def lower_camera(update, context):
 
 def main_camera(update, context):
     log_func("main_camera()", update)
+    context.bot.send_chat_action(
+        chat_id=update.effective_chat.id, action=ChatAction.TYPING
+    )
     web_file = urllib.request.urlopen(main_camera_url)
     context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
 
 
 def roof_camera(update, context):
     log_func("roof_camera()", update)
+    context.bot.send_chat_action(
+        chat_id=update.effective_chat.id, action=ChatAction.TYPING
+    )
     web_cam_url = urllib.request.urlopen(roof_camera_url)
     web_cam_html = web_cam_url.read()
     parser = webcam_parser()

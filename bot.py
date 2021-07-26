@@ -31,7 +31,16 @@ vhf_rig_mode = "FT8"
 
 CAM, FREQ, AZ, EL = range(4)
 
-valid_users = {"LY2EN", "sutemos"}
+valid_users = {
+    "LY2EN",
+    "sutemos",
+    "LY1LB",
+    "LY0NAS",
+    "LY5AT",
+    "LY1WS",
+    "LY2DC",
+    "LY1JA",
+}
 
 log = logging
 log.basicConfig(
@@ -99,7 +108,8 @@ def read_mqtt_vhf_freq(client, userdata, message):
 
 def set_vhf_az(update, context):
     log_func("set_vhf_az()", update)
-    if len(context.args) > 0:
+    username = update.message.from_user["username"]
+    if len(context.args) > 0 and check_permissions(username, update, context):
         change_az(context.args[-1])
         context.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -135,11 +145,24 @@ def set_vhf_az(update, context):
         return AZ
 
 
+def check_permissions(username, update, context):
+    if username in valid_users:
+        return True
+    else:
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Neturite tokių teisių.",
+        )
+        return False
+
+
 def read_vhf_az(update, context):
     query = update.callback_query
     query.answer()
-    change_az(query.data)
-    query.edit_message_text(text=f"Suku VHF antenas į {query.data}º")
+    username = query.from_user["username"]
+    if check_permissions(username, update, context):
+        change_az(query.data)
+        query.edit_message_text(text=f"Suku VHF antenas į {query.data}º")
     return
 
 

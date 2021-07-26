@@ -99,39 +99,57 @@ def read_mqtt_vhf_freq(client, userdata, message):
 
 def set_vhf_az(update, context):
     log_func("set_vhf_az()", update)
-    options = [
-        [
-            InlineKeyboardButton(text="0º (N)", callback_data="0"),
-            InlineKeyboardButton(text="90º (E)", callback_data="90"),
-            InlineKeyboardButton(text="180º (S)", callback_data="180"),
-            InlineKeyboardButton(text="270º (W)", callback_data="270"),
-        ],
-        [
-            InlineKeyboardButton(text="Kaunas", callback_data="286"),
-            InlineKeyboardButton(text="Klaipėda", callback_data="294"),
-            InlineKeyboardButton(text="Šiauliai", callback_data="318"),
-            InlineKeyboardButton(text="Panevėžys", callback_data="333"),
-        ],
-        [
-            InlineKeyboardButton(text="Utena", callback_data="13"),
-            InlineKeyboardButton(text="Alytus", callback_data="246"),
-            InlineKeyboardButton(text="Gardinas", callback_data="220"),
-            InlineKeyboardButton(text="Minskas", callback_data="121"),
-        ],
-    ]
-    reply_markup = InlineKeyboardMarkup(options)
-    context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text="Pasirinkite arba įveskite azimutą:",
-        reply_markup=reply_markup,
-    )
-    return AZ
+    if len(context.args) > 0:
+        change_az(context.args[-1])
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"Suku VHF antenas į {context.args[-1]}º",
+        )
+    else:
+        options = [
+            [
+                InlineKeyboardButton(text="0º (N)", callback_data="0"),
+                InlineKeyboardButton(text="90º (E)", callback_data="90"),
+                InlineKeyboardButton(text="180º (S)", callback_data="180"),
+                InlineKeyboardButton(text="270º (W)", callback_data="270"),
+            ],
+            [
+                InlineKeyboardButton(text="Kaunas", callback_data="286"),
+                InlineKeyboardButton(text="Klaipėda", callback_data="294"),
+                InlineKeyboardButton(text="Šiauliai", callback_data="318"),
+                InlineKeyboardButton(text="Panevėžys", callback_data="333"),
+            ],
+            [
+                InlineKeyboardButton(text="Utena", callback_data="13"),
+                InlineKeyboardButton(text="Alytus", callback_data="246"),
+                InlineKeyboardButton(text="Gardinas", callback_data="220"),
+                InlineKeyboardButton(text="Minskas", callback_data="121"),
+            ],
+        ]
+        reply_markup = InlineKeyboardMarkup(options)
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Pasirinkite arba įveskite azimutą:",
+            reply_markup=reply_markup,
+        )
+        return AZ
 
 
 def read_vhf_az(update, context):
     query = update.callback_query
     query.answer()
-    query.edit_message_text(text=f"NOTIMP: {query.data}")
+    change_az(query.data)
+    query.edit_message_text(text=f"Suku VHF antenas į {query.data}º")
+    return
+
+
+def change_az(degrees):
+    mqtt_client = mqtt.Client()
+    mqtt_client.connect(mqtt_host, 1883, 60)
+    log.info("Connected publisher to MQTT")
+    mqtt_client.publish("VURK/rotator/vhf/set/azimuth", degrees)
+    mqtt_client.disconnect()
+    log.info("Disconnected publisher from MQTT (this is OK)")
     return
 
 

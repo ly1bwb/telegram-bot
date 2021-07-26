@@ -29,6 +29,9 @@ mqtt_host = "192.168.42.253"
 vhf_rig_freq = "000000000"
 vhf_rig_mode = "FT8"
 
+vhf_rot_az = 0
+vhf_rot_el = 0
+
 CAM, FREQ, AZ, EL = range(4)
 
 valid_users = {
@@ -93,6 +96,10 @@ def roof_camera(update, context):
     context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
 
 
+def mqtt_rotator_loop():
+    mqtt_loop("VURK/rotator/vhf/#", read_mqtt_rotator_azel)
+
+
 def mqtt_radio_loop():
     mqtt_loop("VURK/radio/FT847/#", read_mqtt_vhf_freq)
 
@@ -105,6 +112,18 @@ def mqtt_loop(topic, handler):
     mqtt_client.subscribe(topic)
     log.info(f"Subscribed to MQTT: {topic}")
     mqtt_client.loop_forever()
+
+
+def read_mqtt_rotator_azel(client, userdata, message):
+    global vhf_rot_az
+    global vhf_rot_el
+    payload_value = str(message.payload.decode("utf-8"))
+    if message.topic == "VURK/rotator/vhf/azimuth":
+        vhf_rot_az = payload_value
+    if message.topic == "VURK/rotator/vhf/elevation":
+        vhf_rot_el = payload_value
+    if message.topic == "VURK/rotator/vhf/direction":
+        pass
 
 
 def read_mqtt_vhf_freq(client, userdata, message):
@@ -124,7 +143,7 @@ def set_vhf_az(update, context):
         change_az(context.args[-1])
         context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text=f"Suku VHF antenas į {context.args[-1]}º",
+            text=f"Suku VHF antenas iš {vhf_rot_az}º į {context.args[-1]}º",
         )
     else:
         options = [
@@ -150,7 +169,7 @@ def set_vhf_az(update, context):
         reply_markup = InlineKeyboardMarkup(options)
         context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="Pasirinkite arba įveskite azimutą:",
+            text=f"Pasirinkite arba įveskite azimutą (dabar: {vhf_rot_az}º):",
             reply_markup=reply_markup,
         )
         return AZ
@@ -173,7 +192,9 @@ def read_vhf_az(update, context):
     username = query.from_user["username"]
     if check_permissions(username, update, context):
         change_az(query.data)
-        query.edit_message_text(text=f"Suku VHF antenas į {query.data}º")
+        query.edit_message_text(
+            text=f"Suku VHF antenas iš {vhf_rot_az}º į {query.data}º"
+        )
     return
 
 
@@ -224,6 +245,15 @@ def read_vhf_freq(update, context):
     return
 
 
+def vhf_az(update, context):
+    az = vhf_rot_az
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=f"VHF antenų azimutas yra {az}º.",
+        parse_mode=ParseMode.HTML,
+    )
+
+
 def vhf_freq(update, context):
     f = vhf_rig_freq
     ff = f[-9] + f[-8] + f[-7] + "," + f[-6] + f[-5] + f[-4] + " MHz"
@@ -267,6 +297,8 @@ dispatcher.add_handler(CommandHandler("main_camera", main_camera))
 
 dispatcher.add_handler(CommandHandler("vhf_freq", vhf_freq))
 
+dispatcher.add_handler(CommandHandler("vhf_az", vhf_az))
+
 dispatcher.add_handler(vhf_freq_handler)
 
 dispatcher.add_handler(vhf_az_handler)
@@ -274,5 +306,7 @@ dispatcher.add_handler(vhf_az_handler)
 if __name__ == "__main__":
     telegram_thread = Thread(target=updater.start_polling)
     telegram_thread.start()
-    mqtt_thread = Thread(target=mqtt_radio_loop)
-    mqtt_thread.start()
+    mqtt_rig_thread = Thread(target=mqtt_radio_loop)
+    mqtt_rig_thread.start()
+    mqtt_rot_thread = Thread(target=mqtt_rotator_loop)
+    mqtt_rot_thread.start()

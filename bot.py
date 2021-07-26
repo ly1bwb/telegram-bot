@@ -31,6 +31,8 @@ vhf_rig_mode = "FT8"
 
 CAM, FREQ, AZ, EL = range(4)
 
+valid_users = {"LY2EN", "sutemos"}
+
 log = logging
 log.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO

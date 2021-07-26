@@ -245,11 +245,12 @@ def read_vhf_freq(update, context):
     return
 
 
-def vhf_az(update, context):
+def vhf_azel(update, context):
     az = vhf_rot_az
+    el = vhf_rot_el
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f"VHF antenų azimutas yra {az}º.",
+        text=f"VHF antenų azimutas: {az}º, elevacija: {el}º",
         parse_mode=ParseMode.HTML,
     )
 
@@ -297,7 +298,7 @@ dispatcher.add_handler(CommandHandler("main_camera", main_camera))
 
 dispatcher.add_handler(CommandHandler("vhf_freq", vhf_freq))
 
-dispatcher.add_handler(CommandHandler("vhf_az", vhf_az))
+dispatcher.add_handler(CommandHandler("vhf_azel", vhf_azel))
 
 dispatcher.add_handler(vhf_freq_handler)
 

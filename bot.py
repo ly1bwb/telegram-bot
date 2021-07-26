@@ -30,6 +30,12 @@ vhf_rig_freq = "000000000"
 vhf_rig_mode = "FT8"
 
 
+log = logging
+log.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
+
+
 class webcam_parser(HTMLParser):
     roof_camera_img = ""
 
@@ -39,21 +45,28 @@ class webcam_parser(HTMLParser):
             logging.info("Found IMG: " + self.roof_camera_img)
 
 
+def log_func(name, update):
+    log.info(f"Called {name} by {update.message.from_user['username']}")
+
+
 def start(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
 
 
 def lower_camera(update, context):
+    log_func("lower_camera()", update)
     web_file = urllib.request.urlopen(lower_camera_url)
     context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
 
 
 def main_camera(update, context):
+    log_func("main_camera()", update)
     web_file = urllib.request.urlopen(main_camera_url)
     context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
 
 
 def roof_camera(update, context):
+    log_func("roof_camera()", update)
     web_cam_url = urllib.request.urlopen(roof_camera_url)
     web_cam_html = web_cam_url.read()
     parser = webcam_parser()
@@ -64,8 +77,8 @@ def roof_camera(update, context):
 
 def mqtt_freq_loop():
     mqtt_client = mqtt.Client()
-    logging.info("Connecting to MQTT...")
     mqtt_client.connect(mqtt_host, 1883, 60)
+    log.info("Connected to MQTT")
     mqtt_client.on_message = read_mqtt_vhf_freq
     mqtt_client.subscribe("VURK/radio/FT847/#")
     mqtt_client.loop_forever()
@@ -82,6 +95,7 @@ def read_mqtt_vhf_freq(client, userdata, message):
 
 
 def set_vhf_freq(update, context):
+    log.info(f"Called set_vhf_freq() by {update.message.from_user['username']}")
     if len(context.args) > 0:
         context.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -109,6 +123,7 @@ def set_vhf_freq(update, context):
 
 
 def read_vhf_freq(update, context):
+    log.info(f"Called read_vhf_freq()")
     query = update.callback_query
     query.answer()
     query.edit_message_text(text=f"Dar neimplementuota: {query.data}")
@@ -130,8 +145,6 @@ def vhf_freq(update, context):
     )
 
 
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
 dispatcher.add_handler(CommandHandler("start", start))

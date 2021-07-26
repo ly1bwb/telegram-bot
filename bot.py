@@ -8,7 +8,7 @@ import paho.mqtt.client as mqtt
 from html.parser import HTMLParser
 from dotenv import load_dotenv
 from telegram.ext import Updater
-from telegram.ext import CommandHandler, CallbackQueryHandler
+from telegram.ext import CommandHandler, CallbackQueryHandler, ConversationHandler
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from threading import Thread
 
@@ -29,6 +29,7 @@ mqtt_host = "192.168.42.253"
 vhf_rig_freq = "000000000"
 vhf_rig_mode = "FT8"
 
+CAM, FREQ, AZ, EL = range(4)
 
 log = logging
 log.basicConfig(
@@ -94,6 +95,44 @@ def read_mqtt_vhf_freq(client, userdata, message):
         vhf_rig_mode = payload_value
 
 
+def set_vhf_az(update, context):
+    log_func("set_vhf_az()", update)
+    options = [
+        [
+            InlineKeyboardButton(text="0º (N)", callback_data="0"),
+            InlineKeyboardButton(text="90º (E)", callback_data="90"),
+            InlineKeyboardButton(text="180º (S)", callback_data="180"),
+            InlineKeyboardButton(text="270º (W)", callback_data="270"),
+        ],
+        [
+            InlineKeyboardButton(text="Kaunas", callback_data="286"),
+            InlineKeyboardButton(text="Klaipėda", callback_data="294"),
+            InlineKeyboardButton(text="Šiauliai", callback_data="318"),
+            InlineKeyboardButton(text="Panevėžys", callback_data="333"),
+        ],
+        [
+            InlineKeyboardButton(text="Utena", callback_data="13"),
+            InlineKeyboardButton(text="Alytus", callback_data="246"),
+            InlineKeyboardButton(text="Gardinas", callback_data="220"),
+            InlineKeyboardButton(text="Minskas", callback_data="121"),
+        ],
+    ]
+    reply_markup = InlineKeyboardMarkup(options)
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Pasirinkite arba įveskite azimutą:",
+        reply_markup=reply_markup,
+    )
+    return AZ
+
+
+def read_vhf_az(update, context):
+    query = update.callback_query
+    query.answer()
+    query.edit_message_text(text=f"NOTIMP: {query.data}")
+    return
+
+
 def set_vhf_freq(update, context):
     log.info(f"Called set_vhf_freq() by {update.message.from_user['username']}")
     if len(context.args) > 0:
@@ -120,6 +159,7 @@ def set_vhf_freq(update, context):
             text="Pasirinkite arba įveskite dažnį:",
             reply_markup=reply_markup,
         )
+        return FREQ
 
 
 def read_vhf_freq(update, context):
@@ -127,6 +167,7 @@ def read_vhf_freq(update, context):
     query = update.callback_query
     query.answer()
     query.edit_message_text(text=f"Dar neimplementuota: {query.data}")
+    return
 
 
 def vhf_freq(update, context):
@@ -145,6 +186,21 @@ def vhf_freq(update, context):
     )
 
 
+vhf_freq_handler = ConversationHandler(
+    entry_points=[
+        CommandHandler("set_vhf_freq", set_vhf_freq),
+    ],
+    states={
+        FREQ: [CallbackQueryHandler(read_vhf_freq)],
+    },
+    fallbacks=[CommandHandler("set_vhf_freq", set_vhf_freq)],
+)
+
+
+vhf_az_handler = ConversationHandler(
+    entry_points=[CommandHandler("set_vhf_az", set_vhf_az)],
+    states={AZ: [CallbackQueryHandler(read_vhf_az)]},
+    fallbacks=[CommandHandler("set_vhf_az", set_vhf_az)],
 )
 
 dispatcher.add_handler(CommandHandler("start", start))
@@ -157,9 +213,9 @@ dispatcher.add_handler(CommandHandler("main_camera", main_camera))
 
 dispatcher.add_handler(CommandHandler("vhf_freq", vhf_freq))
 
-dispatcher.add_handler(CommandHandler("set_vhf_freq", set_vhf_freq))
+dispatcher.add_handler(vhf_freq_handler)
 
-dispatcher.add_handler(CallbackQueryHandler(read_vhf_freq))
+dispatcher.add_handler(vhf_az_handler)
 
 if __name__ == "__main__":
     telegram_thread = Thread(target=updater.start_polling)

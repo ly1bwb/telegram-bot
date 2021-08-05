@@ -199,10 +199,21 @@ def read_vhf_az(update, context):
 
 
 def change_az(degrees):
+    _mqtt_publish("VURK/rotator/vhf/set/azimuth", degrees)
+    return
+
+
+def change_freq(freq):
+    _mqtt_publish("VURK/radio/FT847/set/frequency", freq)
+    return
+
+
+def _mqtt_publish(topic, message):
     mqtt_client = mqtt.Client()
     mqtt_client.connect(mqtt_host, 1883, 60)
     log.info("Connected publisher to MQTT")
-    mqtt_client.publish("VURK/rotator/vhf/set/azimuth", degrees)
+    mqtt_client.publish(topic, message)
+    log.debug(f"Published {message} to {topic}")
     mqtt_client.disconnect()
     log.info("Disconnected publisher from MQTT (this is OK)")
     return
@@ -210,22 +221,25 @@ def change_az(degrees):
 
 def set_vhf_freq(update, context):
     log.info(f"Called set_vhf_freq() by {update.message.from_user['username']}")
-    if len(context.args) > 0:
+    username = update.message.from_user["username"]
+    if len(context.args) > 0 and check_permissions(username, update, context):
+        change_freq(context.args[-1])
+        f1 = _format_frequency(vhf_rig_freq)
+        f2 = _format_frequency(context.args[-1])
         context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="Dar neimplementuota: " + context.args[-1],
+            chat_id=update.effective_chat.id, text=f"Keičiu dažnį iš {f1} į {f2}"
         )
     else:
         options = [
             [
-                InlineKeyboardButton(text="144,050", callback_data="144050000"),
-                InlineKeyboardButton(text="144,300", callback_data="144300000"),
-                InlineKeyboardButton(text="144,800", callback_data="144800000"),
+                InlineKeyboardButton(text="144.050", callback_data="144050000"),
+                InlineKeyboardButton(text="144.300", callback_data="144300000"),
+                InlineKeyboardButton(text="144.800", callback_data="144800000"),
             ],
             [
-                InlineKeyboardButton(text="145,500", callback_data="145500000"),
-                InlineKeyboardButton(text="145,800", callback_data="145800000"),
-                InlineKeyboardButton(text="145,825", callback_data="145825000"),
+                InlineKeyboardButton(text="145.500", callback_data="145500000"),
+                InlineKeyboardButton(text="145.800", callback_data="145800000"),
+                InlineKeyboardButton(text="145.825", callback_data="145825000"),
             ],
         ]
         reply_markup = InlineKeyboardMarkup(options)
@@ -241,7 +255,12 @@ def read_vhf_freq(update, context):
     log.info(f"Called read_vhf_freq()")
     query = update.callback_query
     query.answer()
-    query.edit_message_text(text=f"Dar neimplementuota: {query.data}")
+    username = query.from_user["username"]
+    f1 = _format_frequency(vhf_rig_freq)
+    f2 = _format_frequency(query.data)
+    if check_permissions(username, update, context):
+        change_freq(query.data)
+        query.edit_message_text(text=f"Keičiu dažnį iš {f1} į {f2}")
     return
 
 
@@ -255,9 +274,12 @@ def vhf_azel(update, context):
     )
 
 
+def _format_frequency(f):
+    return f[-9] + f[-8] + f[-7] + "." + f[-6] + f[-5] + f[-4] + " MHz"
+
+
 def vhf_freq(update, context):
-    f = vhf_rig_freq
-    ff = f[-9] + f[-8] + f[-7] + "," + f[-6] + f[-5] + f[-4] + " MHz"
+    ff = _format_frequency(vhf_rig_freq)
     msg = (
         "VHF stoties dažnis: \n<b>"
         + ff

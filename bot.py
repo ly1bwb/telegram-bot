@@ -33,7 +33,7 @@ vhf_rig_mode = "FT8"
 vhf_rot_az = 0
 vhf_rot_el = 0
 
-CAM, FREQ, AZ, EL = range(4)
+CAM, FREQ, AZ, EL, MODE = range(5)
 
 valid_users = {
     "LY2EN",
@@ -215,6 +215,11 @@ def change_freq(freq):
     return
 
 
+def change_mode(mode):
+    _mqtt_publish("VURK/radio/FT847/set/mode", mode)
+    return
+
+
 def _mqtt_publish(topic, message):
     mqtt_client = mqtt.Client()
     mqtt_client.connect(mqtt_host, 1883, 60)
@@ -223,6 +228,51 @@ def _mqtt_publish(topic, message):
     log.debug(f"Published {message} to {topic}")
     mqtt_client.disconnect()
     log.info("Disconnected publisher from MQTT (this is OK)")
+    return
+
+
+def set_vhf_mode(update, context):
+    log.info(f"Called set_vhf_mode() by {update.message.from_user['username']}")
+    username = update.message.from_user["username"]
+    if len(context.args) > 0 and check_permissions(username, update, context):
+        change_mode(context.args[-1])
+        f1 = vhf_rig_mode
+        f2 = context.args[-1]
+        context.bot.send_message(
+            chat_id=update.effective_chat.id, text=f"Keičiu režimą iš {f1} į {f2}"
+        )
+    else:
+        options = [
+            [
+                InlineKeyboardButton(text="FM", callback_data="FM"),
+                InlineKeyboardButton(text="USB", callback_data="USB"),
+                InlineKeyboardButton(text="LSB", callback_data="LSB"),
+            ],
+            [
+                InlineKeyboardButton(text="CW", callback_data="CW"),
+                InlineKeyboardButton(text="CWR", callback_data="CWR"),
+                InlineKeyboardButton(text="AM", callback_data="AM"),
+            ],
+        ]
+        reply_markup = InlineKeyboardMarkup(options)
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"Pasirinkite režimą (dabar {vhf_rig_mode}):",
+            reply_markup=reply_markup,
+        )
+        return MODE
+
+
+def read_vhf_mode(update, context):
+    log.info(f"Called read_vhf_mode()")
+    query = update.callback_query
+    query.answer()
+    username = query.from_user["username"]
+    f1 = vhf_rig_mode
+    f2 = query.data
+    if check_permissions(username, update, context):
+        change_mode(query.data)
+        query.edit_message_text(text=f"Keičiu režimą iš {f1} į {f2}")
     return
 
 
@@ -317,6 +367,12 @@ vhf_az_handler = ConversationHandler(
     fallbacks=[CommandHandler("set_vhf_az", set_vhf_az)],
 )
 
+vhf_mode_handler = ConversationHandler(
+    entry_points=[CommandHandler("set_vhf_mode", set_vhf_mode)],
+    states={MODE: [CallbackQueryHandler(read_vhf_mode)]},
+    fallbacks=[CommandHandler("set_vhf_mode", set_vhf_mode)],
+)
+
 dispatcher.add_handler(CommandHandler("start", start))
 
 dispatcher.add_handler(CommandHandler("roof_camera", roof_camera))
@@ -334,6 +390,8 @@ dispatcher.add_handler(CommandHandler("vhf_azel", vhf_azel))
 dispatcher.add_handler(vhf_freq_handler)
 
 dispatcher.add_handler(vhf_az_handler)
+
+dispatcher.add_handler(vhf_mode_handler)
 
 if __name__ == "__main__":
     telegram_thread = Thread(target=updater.start_polling)

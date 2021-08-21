@@ -1,5 +1,7 @@
 import os
 import time
+import math
+import maidenhead as mh
 import logging
 import urllib.request
 
@@ -7,8 +9,14 @@ import paho.mqtt.client as mqtt
 
 from html.parser import HTMLParser
 from dotenv import load_dotenv
-from telegram.ext import Updater
-from telegram.ext import CommandHandler, CallbackQueryHandler, ConversationHandler
+from telegram.ext import (
+    Updater,
+    Filters,
+    CommandHandler,
+    CallbackQueryHandler,
+    ConversationHandler,
+    MessageHandler,
+)
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton, ChatAction
 from threading import Thread
 
@@ -46,6 +54,8 @@ valid_users = {
     "LY1JA",
 }
 
+home_qth = "KO24PR15"
+
 log = logging
 log.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -67,6 +77,16 @@ def log_func(name, update):
 
 def start(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
+
+
+def angle_between_loc(x1, y1, x2, y2):
+    return math.degrees(math.atan2(y2 - y1, x2 - x1)) + 180
+
+
+def angle_qth(loc_qth):
+    (x1, y1) = mh.to_location(loc_qth)
+    (x2, y2) = mh.to_location(home_qth)
+    return angle_between_loc(x1, y1, x2, y2)
 
 
 def lower_camera(update, context):
@@ -350,6 +370,19 @@ def vhf_freq(update, context):
     )
 
 
+def calculate_azimuth_by_loc(update, context):
+    user_id = update.message.from_user["id"]
+    loc = update.message.text
+    deg = round(angle_qth(loc))
+    # update.message.reply_text(f"Band set to: {band}")
+    context.bot.send_message(
+        chat_id=update.effective_chat.id, text=f"Azimutas į {loc} yra {deg}°"
+    )
+    context.bot.send_message(
+        chat_id=update.effective_chat.id, text=f"/set_vhf_az {deg}"
+    )
+
+
 vhf_freq_handler = ConversationHandler(
     entry_points=[
         CommandHandler("set_vhf_freq", set_vhf_freq),
@@ -392,6 +425,16 @@ dispatcher.add_handler(vhf_freq_handler)
 dispatcher.add_handler(vhf_az_handler)
 
 dispatcher.add_handler(vhf_mode_handler)
+
+dispatcher.add_handler(
+    MessageHandler(
+        Filters.regex(
+            r"^\w{2}\d{2}\w{2}(\d\d){0,1}$",
+        ),
+        calculate_azimuth_by_loc,
+    )
+)
+
 
 if __name__ == "__main__":
     telegram_thread = Thread(target=updater.start_polling)

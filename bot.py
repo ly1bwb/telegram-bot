@@ -1,6 +1,7 @@
 import os
 import time
 import math
+import pyproj
 import maidenhead as mh
 import logging
 import urllib.request
@@ -80,10 +81,12 @@ def start(update, context):
 
 
 def angle_between_loc(x1, y1, x2, y2):
-    return math.degrees(math.atan2(y2 - y1, x2 - x1)) + 180
+    geodesic = pyproj.Geod(ellps="WGS84")
+    fwd_azimuth, _back_azimuth, distance = geodesic.inv(y1, x1, y2, x2)
+    return fwd_azimuth + 180, distance
 
 
-def angle_qth(loc_qth):
+def angle_distance_qth(loc_qth):
     (x1, y1) = mh.to_location(loc_qth)
     (x2, y2) = mh.to_location(home_qth)
     return angle_between_loc(x1, y1, x2, y2)
@@ -373,10 +376,12 @@ def vhf_freq(update, context):
 def calculate_azimuth_by_loc(update, context):
     user_id = update.message.from_user["id"]
     loc = update.message.text
-    deg = round(angle_qth(loc))
-    # update.message.reply_text(f"Band set to: {band}")
+    deg, dist = angle_distance_qth(loc)
+    deg = round(deg)
+    dist = round(dist / 1000)
     context.bot.send_message(
-        chat_id=update.effective_chat.id, text=f"Azimutas į {loc} yra {deg}°"
+        chat_id=update.effective_chat.id,
+        text=f"Azimutas į {loc} yra {deg}° (atstumas: {dist} km)",
     )
     context.bot.send_message(
         chat_id=update.effective_chat.id, text=f"/set_vhf_az {deg}"

@@ -1,13 +1,16 @@
 import os
 import time
 import math
+import ephem
 import pyproj
 import maidenhead as mh
 import logging
+import datetime
 import urllib.request
 
 import paho.mqtt.client as mqtt
 
+from math import pi
 from html.parser import HTMLParser
 from dotenv import load_dotenv
 from telegram.ext import (
@@ -90,6 +93,17 @@ def angle_distance_qth(loc_qth):
     (x1, y1) = mh.to_location(loc_qth)
     (x2, y2) = mh.to_location(home_qth)
     return angle_between_loc(x1, y1, x2, y2)
+
+
+def get_moon_azel(qth):
+    home = ephem.Observer()
+    _lat, _lon = mh.to_location(qth)
+    home.lat = str(_lat)
+    home.lon = str(_lon)
+    home.date = datetime.datetime.utcnow()
+    moon = ephem.Moon()
+    moon.compute(home)
+    return int(moon.az / pi * 180), int(moon.alt / pi * 180)
 
 
 def lower_camera(update, context):
@@ -205,6 +219,34 @@ def set_vhf_az(update, context):
         return AZ
 
 
+def set_moon_vhf_azel(update, context):
+    log_func("set_moon_vhf_azel()", update)
+    username = update.message.from_user["username"]
+    if check_permissions(username, update, context):
+        m_az, m_el = get_moon_azel(home_qth)
+        if m_el >= 0:
+            change_az(m_az)
+            change_el(m_el)
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=f"Suku į Mėnulį 🌕 iš {vhf_rot_az}º, {vhf_rot_el}º į {m_az}º, {m_el}º",
+            )
+        else:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=f"Mėnulis 🌕 dabar po horizontu {m_el}º",
+            )
+
+
+def get_moon_vhf_azel(update, context):
+    log_func("get_moon_vhf_azel()", update)
+    m_az, m_el = get_moon_azel(home_qth)
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=f"Mėnulis 🌕 dabar yra {m_az}º azimute, {m_el}º elevacijoje",
+    )
+
+
 def check_permissions(username, update, context):
     if username in valid_users:
         return True
@@ -230,6 +272,11 @@ def read_vhf_az(update, context):
 
 def change_az(degrees):
     _mqtt_publish("VURK/rotator/vhf/set/azimuth", degrees)
+    return
+
+
+def change_el(degrees):
+    _mqtt_publish("VURK/rotator/vhf/set/elevation", degrees)
     return
 
 
@@ -424,6 +471,10 @@ dispatcher.add_handler(CommandHandler("main_camera", main_camera))
 dispatcher.add_handler(CommandHandler("vhf_freq", vhf_freq))
 
 dispatcher.add_handler(CommandHandler("vhf_azel", vhf_azel))
+
+dispatcher.add_handler(CommandHandler("moon", get_moon_vhf_azel))
+
+dispatcher.add_handler(CommandHandler("moon_azel", set_moon_vhf_azel))
 
 dispatcher.add_handler(vhf_freq_handler)
 

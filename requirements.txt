@@ -3,3 +3,4 @@ python-dotenv
 paho-mqtt
 maidenhead
 pyproj<=1.9.6
+ephem

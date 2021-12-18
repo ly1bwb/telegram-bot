@@ -213,10 +213,41 @@ def set_vhf_az(update, context):
         reply_markup = InlineKeyboardMarkup(options)
         context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text=f"Pasirinkite arba įveskite azimutą (dabar: {vhf_rot_az}º):",
+            text=f"🧭 Pasirinkite arba įveskite azimutą (dabar: {vhf_rot_az}º):",
             reply_markup=reply_markup,
         )
         return AZ
+
+
+def set_vhf_el(update, context):
+    log_func("set_vhf_el()", update)
+    username = update.message.from_user["username"]
+    if len(context.args) > 0 and check_permissions(username, update, context):
+        change_el(context.args[-1])
+        if vhf_rot_el > context.args[-1]:
+            msg = "Leidžiu"
+        else:
+            msg = "Keliu"
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"🔭 {msg} VHF antenas iš {vhf_rot_el}º į {context.args[-1]}º",
+        )
+    else:
+        options = [
+            [
+                InlineKeyboardButton(text="0º", callback_data="0"),
+                InlineKeyboardButton(text="30º", callback_data="30"),
+                InlineKeyboardButton(text="45º", callback_data="45"),
+                InlineKeyboardButton(text="90º", callback_data="90"),
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(options)
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"🔭 Pasirinkite arba įveskite elevaciją (dabar: {vhf_rot_el}º):",
+            reply_markup=reply_markup,
+        )
+        return EL
 
 
 def set_moon_vhf_azel(update, context):
@@ -270,13 +301,31 @@ def read_vhf_az(update, context):
     return
 
 
+def read_vhf_el(update, context):
+    query = update.callback_query
+    query.answer()
+    username = query.from_user["username"]
+    if check_permissions(username, update, context):
+        if vhf_rot_el > query.data:
+            msg = "Leidžiu"
+        else:
+            msg = "Keliu"
+        change_el(query.data)
+        query.edit_message_text(
+            text=f"{msg} VHF antenas iš {vhf_rot_el}º į {query.data}º"
+        )
+    return
+
+
 def change_az(degrees):
     _mqtt_publish("VURK/rotator/vhf/set/azimuth", degrees)
     return
 
 
 def change_el(degrees):
-    _mqtt_publish("VURK/rotator/vhf/set/elevation", degrees)
+    if int(degrees) >= 0 and int(degrees) < 360:
+        _mqtt_publish("VURK/rotator/vhf/set/elevation", degrees)
+    log.info("change_el({})".format(degrees))
     return
 
 
@@ -452,6 +501,12 @@ vhf_az_handler = ConversationHandler(
     fallbacks=[CommandHandler("set_vhf_az", set_vhf_az)],
 )
 
+vhf_el_handler = ConversationHandler(
+    entry_points=[CommandHandler("set_vhf_el", set_vhf_el)],
+    states={EL: [CallbackQueryHandler(read_vhf_el)]},
+    fallbacks=[CommandHandler("set_vhf_el", set_vhf_el)],
+)
+
 vhf_mode_handler = ConversationHandler(
     entry_points=[CommandHandler("set_vhf_mode", set_vhf_mode)],
     states={MODE: [CallbackQueryHandler(read_vhf_mode)]},
@@ -479,6 +534,8 @@ dispatcher.add_handler(CommandHandler("moon_azel", set_moon_vhf_azel))
 dispatcher.add_handler(vhf_freq_handler)
 
 dispatcher.add_handler(vhf_az_handler)
+
+dispatcher.add_handler(vhf_el_handler)
 
 dispatcher.add_handler(vhf_mode_handler)
 

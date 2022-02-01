@@ -34,6 +34,7 @@ roof_camera_url = roof_camera_host + "snap.cgi?&-getpic"
 
 lower_camera_url = "http://192.168.42.10/webcam/webcam3.jpg"
 rig_camera_url = "http://192.168.42.10/webcam/webcam1.jpg"
+window_camera_url = "http://192.168.42.129/snapshot.jpg"
 main_camera_url = (
     "http://192.168.42.183/onvifsnapshot/media_service/snapshot?channel=1&subtype=0"
 )
@@ -118,6 +119,10 @@ def rig_camera(update, context):
     web_file = urllib.request.urlopen(rig_camera_url)
     context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
 
+def window_camera(update, context):
+    log_func("window)camera()", update)
+    web_file = urllib.request.urlopen(window_camera_url)
+    context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
 
 def main_camera(update, context):
     log_func("main_camera()", update)
@@ -521,6 +526,8 @@ dispatcher.add_handler(CommandHandler("roof_camera", roof_camera))
 dispatcher.add_handler(CommandHandler("rig_camera", rig_camera))
 
 dispatcher.add_handler(CommandHandler("lower_camera", lower_camera))
+
+dispatcher.add_handler(CommandHandler("window_camera", window_camera))
 
 dispatcher.add_handler(CommandHandler("main_camera", main_camera))
 

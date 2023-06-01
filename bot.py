@@ -57,7 +57,8 @@ valid_users = {
     "LY1WS",
     "LY2DC",
     "LY1JA",
-    "LY4AU"
+    "LY4AU",
+    "volwerene"
 }
 
 home_qth = "KO24PR15"

@@ -13,20 +13,25 @@ import paho.mqtt.client as mqtt
 from math import pi
 from html.parser import HTMLParser
 from dotenv import load_dotenv
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
+from telegram.constants import (
+    ParseMode,
+    ChatAction,
+)
 from telegram.ext import (
-    Updater,
-    Filters,
+    Application,
+    filters,
+    ContextTypes,
     CommandHandler,
     CallbackQueryHandler,
     ConversationHandler,
     MessageHandler,
 )
-from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton, ChatAction
 from threading import Thread
 
 load_dotenv()
-updater = Updater(token=os.environ.get("TELEGRAM_BOT_TOKEN"), use_context=True)
-dispatcher = updater.dispatcher
+
+application = Application.builder().token(os.environ.get("TELEGRAM_BOT_TOKEN")).build()
 
 start_text = "Labas - aš esu LY1BWB stoties botas."
 roof_camera_host = "http://192.168.42.177/cgi-bin/hi3510/"
@@ -82,8 +87,9 @@ def log_func(name, update):
     log.info(f"Called {name} by {update.message.from_user['username']}")
 
 
-def start(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
+    return ConversationHandler.END
 
 
 def angle_between_loc(x1, y1, x2, y2):
@@ -109,33 +115,40 @@ def get_moon_azel(qth):
     return int(moon.az / pi * 180), int(moon.alt / pi * 180)
 
 
-def lower_camera(update, context):
+async def lower_camera(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log_func("lower_camera()", update)
     web_file = urllib.request.urlopen(lower_camera_url)
-    context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
+    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
+    return ConversationHandler.END
 
 
-def rig_camera(update, context):
+async def rig_camera(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log_func("rig_camera()", update)
     web_file = urllib.request.urlopen(rig_camera_url)
-    context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
+    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
+    return ConversationHandler.END
 
-def window_camera(update, context):
+async def window_camera(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log_func("window)camera()", update)
-    web_file = urllib.request.urlopen(window_camera_url)
-    context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
+    web_file = urllib.request.urlopen(window_camera_url, timeout=5)
+    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
+    return ConversationHandler.END
 
-def main_camera(update, context):
+async def main_camera(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log_func("main_camera()", update)
-    context.bot.send_chat_action(
+    await context.bot.send_chat_action(
         chat_id=update.effective_chat.id, action=ChatAction.TYPING
     )
     web_file = urllib.request.urlopen(main_camera_url)
-    context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
+    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
+    return ConversationHandler.END
 
 
-def roof_camera(update, context):
+async def roof_camera(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log_func("roof_camera()", update)
+    #await update._bot.send_chat_action(
+    #    chat_id=update.effective_chat.id, action=ChatAction.TYPING
+    #)
     context.bot.send_chat_action(
         chat_id=update.effective_chat.id, action=ChatAction.TYPING
     )
@@ -144,7 +157,7 @@ def roof_camera(update, context):
     parser = webcam_parser()
     parser.feed(web_cam_html.decode("utf-8"))
     web_file = urllib.request.urlopen(parser.roof_camera_img)
-    context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
+    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
 
 
 def mqtt_rotator_loop():
@@ -152,7 +165,7 @@ def mqtt_rotator_loop():
 
 
 def mqtt_radio_loop():
-    mqtt_loop("VURK/radio/FT847/#", read_mqtt_vhf_freq)
+    mqtt_loop("VURK/radio/IC9700/#", read_mqtt_vhf_freq)
 
 
 def mqtt_loop(topic, handler):
@@ -181,18 +194,18 @@ def read_mqtt_vhf_freq(client, userdata, message):
     global vhf_rig_freq
     global vhf_rig_mode
     payload_value = str(message.payload.decode("utf-8"))
-    if message.topic == "VURK/radio/FT847/frequency":
+    if message.topic == "VURK/radio/IC9700/frequency":
         vhf_rig_freq = payload_value
-    if message.topic == "VURK/radio/FT847/mode":
+    if message.topic == "VURK/radio/IC9700/mode":
         vhf_rig_mode = payload_value
 
 
-def set_vhf_az(update, context):
+async def set_vhf_az(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log_func("set_vhf_az()", update)
     username = update.message.from_user["username"]
     if len(context.args) > 0 and check_permissions(username, update, context):
         change_az(context.args[-1])
-        context.bot.send_message(
+        await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=f"Suku VHF antenas iš {vhf_rot_az}º į {context.args[-1]}º",
         )
@@ -218,7 +231,7 @@ def set_vhf_az(update, context):
             ],
         ]
         reply_markup = InlineKeyboardMarkup(options)
-        context.bot.send_message(
+        await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=f"🧭 Pasirinkite arba įveskite azimutą (dabar: {vhf_rot_az}º):",
             reply_markup=reply_markup,
@@ -226,7 +239,7 @@ def set_vhf_az(update, context):
         return AZ
 
 
-def set_vhf_el(update, context):
+async def set_vhf_el(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log_func("set_vhf_el()", update)
     username = update.message.from_user["username"]
     if len(context.args) > 0 and check_permissions(username, update, context):
@@ -235,7 +248,7 @@ def set_vhf_el(update, context):
             msg = "Leidžiu"
         else:
             msg = "Keliu"
-        context.bot.send_message(
+        await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=f"🔭 {msg} VHF antenas iš {vhf_rot_el}º į {context.args[-1]}º",
         )
@@ -249,7 +262,7 @@ def set_vhf_el(update, context):
             ]
         ]
         reply_markup = InlineKeyboardMarkup(options)
-        context.bot.send_message(
+        await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=f"🔭 Pasirinkite arba įveskite elevaciją (dabar: {vhf_rot_el}º):",
             reply_markup=reply_markup,
@@ -257,7 +270,7 @@ def set_vhf_el(update, context):
         return EL
 
 
-def set_moon_vhf_azel(update, context):
+async def set_moon_vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log_func("set_moon_vhf_azel()", update)
     username = update.message.from_user["username"]
     if check_permissions(username, update, context):
@@ -265,24 +278,26 @@ def set_moon_vhf_azel(update, context):
         if m_el >= 0:
             change_az(m_az)
             change_el(m_el)
-            context.bot.send_message(
+            await context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text=f"Suku į Mėnulį 🌕 iš {vhf_rot_az}º, {vhf_rot_el}º į {m_az}º, {m_el}º",
             )
         else:
-            context.bot.send_message(
+            await context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text=f"Mėnulis 🌕 dabar po horizontu {m_el}º",
             )
+    return ConversationHandler.END
 
 
-def get_moon_vhf_azel(update, context):
+async def get_moon_vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log_func("get_moon_vhf_azel()", update)
     m_az, m_el = get_moon_azel(home_qth)
-    context.bot.send_message(
+    await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f"Mėnulis 🌕 dabar yra {m_az}º azimute, {m_el}º elevacijoje",
     )
+    return ConversationHandler.END
 
 
 def check_permissions(username, update, context):
@@ -296,21 +311,21 @@ def check_permissions(username, update, context):
         return False
 
 
-def read_vhf_az(update, context):
+async def read_vhf_az(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
-    query.answer()
+    await query.answer()
     username = query.from_user["username"]
     if check_permissions(username, update, context):
         change_az(query.data)
-        query.edit_message_text(
+        await query.edit_message_text(
             text=f"Suku VHF antenas iš {vhf_rot_az}º į {query.data}º"
         )
-    return
+    return ConversationHandler.END
 
 
-def read_vhf_el(update, context):
+async def read_vhf_el(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
-    query.answer()
+    await query.answer()
     username = query.from_user["username"]
     if check_permissions(username, update, context):
         if vhf_rot_el > query.data:
@@ -318,17 +333,16 @@ def read_vhf_el(update, context):
         else:
             msg = "Keliu"
         change_el(query.data)
-        query.edit_message_text(
+        await query.edit_message_text(
             text=f"{msg} VHF antenas iš {vhf_rot_el}º į {query.data}º"
         )
-    return
+    return ConversationHandler.END
 
-def sveiki(update, context):
+async def sveiki(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    user = update.message.from_user
     log_func("sveiki()", update)
-    context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=f"Sveiki",
-    )
+    await update.message.reply_text("Sveiki")
+    return ConversationHandler.END
 
 def change_az(degrees):
     _mqtt_publish("VURK/rotator/vhf/set/azimuth", degrees)
@@ -343,12 +357,12 @@ def change_el(degrees):
 
 
 def change_freq(freq):
-    _mqtt_publish("VURK/radio/FT847/set/frequency", freq)
+    _mqtt_publish("VURK/radio/IC9700/set/frequency", freq)
     return
 
 
 def change_mode(mode):
-    _mqtt_publish("VURK/radio/FT847/set/mode", mode)
+    _mqtt_publish("VURK/radio/IC9700/set/mode", mode)
     return
 
 
@@ -363,14 +377,14 @@ def _mqtt_publish(topic, message):
     return
 
 
-def set_vhf_mode(update, context):
+async def set_vhf_mode(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log.info(f"Called set_vhf_mode() by {update.message.from_user['username']}")
     username = update.message.from_user["username"]
     if len(context.args) > 0 and check_permissions(username, update, context):
         change_mode(context.args[-1])
         f1 = vhf_rig_mode
         f2 = context.args[-1]
-        context.bot.send_message(
+        await context.bot.send_message(
             chat_id=update.effective_chat.id, text=f"Keičiu režimą iš {f1} į {f2}"
         )
     else:
@@ -387,7 +401,7 @@ def set_vhf_mode(update, context):
             ],
         ]
         reply_markup = InlineKeyboardMarkup(options)
-        context.bot.send_message(
+        await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=f"Pasirinkite režimą (dabar {vhf_rig_mode}):",
             reply_markup=reply_markup,
@@ -395,27 +409,27 @@ def set_vhf_mode(update, context):
         return MODE
 
 
-def read_vhf_mode(update, context):
+async def read_vhf_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log.info(f"Called read_vhf_mode()")
     query = update.callback_query
-    query.answer()
+    await query.answer()
     username = query.from_user["username"]
     f1 = vhf_rig_mode
     f2 = query.data
     if check_permissions(username, update, context):
         change_mode(query.data)
-        query.edit_message_text(text=f"Keičiu režimą iš {f1} į {f2}")
-    return
+        await query.edit_message_text(text=f"Keičiu režimą iš {f1} į {f2}")
+    return ConversationHandler.END
 
 
-def set_vhf_freq(update, context):
+async def set_vhf_freq(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log.info(f"Called set_vhf_freq() by {update.message.from_user['username']}")
     username = update.message.from_user["username"]
     if len(context.args) > 0 and check_permissions(username, update, context):
         change_freq(context.args[-1])
         f1 = _format_frequency(vhf_rig_freq)
         f2 = _format_frequency(context.args[-1])
-        context.bot.send_message(
+        await context.bot.send_message(
             chat_id=update.effective_chat.id, text=f"Keičiu dažnį iš {f1} į {f2}"
         )
     else:
@@ -432,7 +446,7 @@ def set_vhf_freq(update, context):
             ],
         ]
         reply_markup = InlineKeyboardMarkup(options)
-        context.bot.send_message(
+        await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text="Pasirinkite arba įveskite dažnį:",
             reply_markup=reply_markup,
@@ -440,34 +454,35 @@ def set_vhf_freq(update, context):
         return FREQ
 
 
-def read_vhf_freq(update, context):
+async def read_vhf_freq(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log.info(f"Called read_vhf_freq()")
     query = update.callback_query
-    query.answer()
+    await query.answer()
     username = query.from_user["username"]
     f1 = _format_frequency(vhf_rig_freq)
     f2 = _format_frequency(query.data)
     if check_permissions(username, update, context):
         change_freq(query.data)
-        query.edit_message_text(text=f"Keičiu dažnį iš {f1} į {f2}")
-    return
+        await query.edit_message_text(text=f"Keičiu dažnį iš {f1} į {f2}")
+    return ConversationHandler.END
 
 
-def vhf_azel(update, context):
+async def vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     az = vhf_rot_az
     el = vhf_rot_el
-    context.bot.send_message(
+    await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f"VHF antenų azimutas: {az}º, elevacija: {el}º",
         parse_mode=ParseMode.HTML,
     )
+    return ConversationHandler.END
 
 
 def _format_frequency(f):
     return f[-9] + f[-8] + f[-7] + "." + f[-6] + f[-5] + f[-4] + " MHz"
 
 
-def vhf_freq(update, context):
+async def vhf_freq(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     ff = _format_frequency(vhf_rig_freq)
     msg = (
         "VHF stoties dažnis: \n<b>"
@@ -477,24 +492,26 @@ def vhf_freq(update, context):
         + ")</b>"
         + "\n👉 <a href='http://sdr.vhf.lt:8000/ft847'>Klausyti gyvai</a>"
     )
-    context.bot.send_message(
+    await context.bot.send_message(
         chat_id=update.effective_chat.id, text=msg, parse_mode=ParseMode.HTML
     )
+    return ConversationHandler.END
 
 
-def calculate_azimuth_by_loc(update, context):
+async def calculate_azimuth_by_loc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user_id = update.message.from_user["id"]
     loc = update.message.text
     deg, dist = angle_distance_qth(loc)
     deg = round(deg)
     dist = round(dist / 1000)
-    context.bot.send_message(
+    await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f"Azimutas į {loc} yra {deg}° (atstumas: {dist} km)",
     )
-    context.bot.send_message(
+    await context.bot.send_message(
         chat_id=update.effective_chat.id, text=f"/set_vhf_az {deg}"
     )
+    return ConversationHandler.END
 
 
 vhf_freq_handler = ConversationHandler(
@@ -526,39 +543,39 @@ vhf_mode_handler = ConversationHandler(
     fallbacks=[CommandHandler("set_vhf_mode", set_vhf_mode)],
 )
 
-dispatcher.add_handler(CommandHandler("start", start))
+application.add_handler(CommandHandler("start", start))
 
-dispatcher.add_handler(CommandHandler("roof_camera", roof_camera))
+application.add_handler(CommandHandler("roof_camera", roof_camera))
 
-dispatcher.add_handler(CommandHandler("rig_camera", rig_camera))
+application.add_handler(CommandHandler("rig_camera", rig_camera))
 
-dispatcher.add_handler(CommandHandler("lower_camera", lower_camera))
+application.add_handler(CommandHandler("lower_camera", lower_camera))
 
-dispatcher.add_handler(CommandHandler("window_camera", window_camera))
+application.add_handler(CommandHandler("window_camera", window_camera))
 
-dispatcher.add_handler(CommandHandler("main_camera", main_camera))
+application.add_handler(CommandHandler("main_camera", main_camera))
 
-dispatcher.add_handler(CommandHandler("vhf_freq", vhf_freq))
+application.add_handler(CommandHandler("vhf_freq", vhf_freq))
 
-dispatcher.add_handler(CommandHandler("vhf_azel", vhf_azel))
+application.add_handler(CommandHandler("vhf_azel", vhf_azel))
 
-dispatcher.add_handler(CommandHandler("moon", get_moon_vhf_azel))
+application.add_handler(CommandHandler("moon", get_moon_vhf_azel))
 
-dispatcher.add_handler(CommandHandler("moon_azel", set_moon_vhf_azel))
+application.add_handler(CommandHandler("moon_azel", set_moon_vhf_azel))
 
-dispatcher.add_handler(CommandHandler("sveiki", sveiki))
+application.add_handler(CommandHandler("sveiki", sveiki))
 
-dispatcher.add_handler(vhf_freq_handler)
+application.add_handler(vhf_freq_handler)
 
-dispatcher.add_handler(vhf_az_handler)
+application.add_handler(vhf_az_handler)
 
-dispatcher.add_handler(vhf_el_handler)
+application.add_handler(vhf_el_handler)
 
-dispatcher.add_handler(vhf_mode_handler)
+application.add_handler(vhf_mode_handler)
 
-dispatcher.add_handler(
+application.add_handler(
     MessageHandler(
-        Filters.regex(
+        filters.Regex(
             r"^\w{2}\d{2}\w{2}(\d\d){0,1}$",
         ),
         calculate_azimuth_by_loc,
@@ -567,9 +584,10 @@ dispatcher.add_handler(
 
 
 if __name__ == "__main__":
-    telegram_thread = Thread(target=updater.start_polling)
-    telegram_thread.start()
     mqtt_rig_thread = Thread(target=mqtt_radio_loop)
     mqtt_rig_thread.start()
     mqtt_rot_thread = Thread(target=mqtt_rotator_loop)
     mqtt_rot_thread.start()
+    # Telegram thread must be last
+    telegram_thread = Thread(target=application.run_polling(allowed_updates=Update.ALL_TYPES))
+    telegram_thread.start()

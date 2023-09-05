@@ -323,6 +323,12 @@ def read_vhf_el(update, context):
         )
     return
 
+def sveiki(update, context):
+    log_func("sveiki()", update)
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=f"Sveiki",
+    )
 
 def change_az(degrees):
     _mqtt_publish("VURK/rotator/vhf/set/azimuth", degrees)
@@ -539,6 +545,8 @@ dispatcher.add_handler(CommandHandler("vhf_azel", vhf_azel))
 dispatcher.add_handler(CommandHandler("moon", get_moon_vhf_azel))
 
 dispatcher.add_handler(CommandHandler("moon_azel", set_moon_vhf_azel))
+
+dispatcher.add_handler(CommandHandler("sveiki", sveiki))
 
 dispatcher.add_handler(vhf_freq_handler)
 

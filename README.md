@@ -19,6 +19,7 @@ Sveiki, radijo mėgėjai. Aš esu VU radijo klubo stoties valdymo botas. Mane ga
 * `set_vhf_el` - Nustatyti VHF antenų elevaciją (tik nariams)
 * `set_vhf_freq` - Nustatyti VHF stoties dažnį (tik nariams)
 * `set_vhf_mode` - Nustatyti VHF stoties režimą (tik nariams)
+* `sveiki` - Sveiki
 
 ## Komandų aprašymas
 
@@ -40,3 +41,4 @@ Robotas pasuks antenas tam tikru azimutu, kurį nurodote arba kaip komandos para
 
 * Simonas LY2EN <ly2en@qrz.lt>
 * Vilius LY3FF (MQTT modulis)
+* Domantas LY1JA

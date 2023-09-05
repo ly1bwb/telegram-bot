@@ -149,7 +149,7 @@ async def roof_camera(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     #await update._bot.send_chat_action(
     #    chat_id=update.effective_chat.id, action=ChatAction.TYPING
     #)
-    context.bot.send_chat_action(
+    await context.bot.send_chat_action(
         chat_id=update.effective_chat.id, action=ChatAction.TYPING
     )
     web_cam_url = urllib.request.urlopen(roof_camera_url)

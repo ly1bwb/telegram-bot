@@ -44,7 +44,7 @@ main_camera_url = (
     "http://192.168.42.183/onvifsnapshot/media_service/snapshot?channel=1&subtype=0"
 )
 
-mqtt_host = "192.168.42.253"
+mqtt_host = "mqtt.vurk"
 vhf_rig_freq = "000000000"
 vhf_rig_mode = "FT8"
 
@@ -339,9 +339,8 @@ async def read_vhf_el(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     return ConversationHandler.END
 
 async def sveiki(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    user = update.message.from_user
     log_func("sveiki()", update)
-    await update.message.reply_text("Sveiki")
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Sveiki")
     return ConversationHandler.END
 
 def change_az(degrees):

@@ -44,7 +44,7 @@ main_camera_url = (
     "http://192.168.42.183/onvifsnapshot/media_service/snapshot?channel=1&subtype=0"
 )
 
-mqtt_host = "192.168.42.253"
+mqtt_host = "mqtt.vurk"
 vhf_rig_freq = "000000000"
 vhf_rig_mode = "FT8"
 

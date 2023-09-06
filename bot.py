@@ -339,9 +339,7 @@ async def read_vhf_el(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     return ConversationHandler.END
 
 async def sveiki(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    user = update.message.from_user
     log_func("sveiki()", update)
-    #await update.message.reply_text("Sveiki")
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Sveiki")
     return ConversationHandler.END
 

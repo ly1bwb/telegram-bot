@@ -7,6 +7,7 @@ import maidenhead as mh
 import logging
 import datetime
 import urllib.request
+import socket
 
 import paho.mqtt.client as mqtt
 
@@ -30,6 +31,8 @@ from telegram.ext import (
 from threading import Thread
 
 load_dotenv()
+
+VERSION = "1.0.0"
 
 application = Application.builder().token(os.environ.get("TELEGRAM_BOT_TOKEN")).build()
 
@@ -343,6 +346,18 @@ async def sveiki(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Sveiki")
     return ConversationHandler.END
 
+async def get_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    log_func("get_status()", update)
+    username = update.message.from_user["username"]
+    if check_permissions(username, update, context):
+        hostname = socket.gethostname()
+        ip_address = socket.gethostbyname(hostname)
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id, 
+            text=f"Version: {VERSION}\nHostname: {hostname}\nIP: {ip_address}"
+        )
+    return ConversationHandler.END
+
 def change_az(degrees):
     _mqtt_publish("VURK/rotator/vhf/set/azimuth", degrees)
     return
@@ -563,6 +578,8 @@ application.add_handler(CommandHandler("moon", get_moon_vhf_azel))
 application.add_handler(CommandHandler("moon_azel", set_moon_vhf_azel))
 
 application.add_handler(CommandHandler("sveiki", sveiki))
+
+application.add_handler(CommandHandler("status", get_status))
 
 application.add_handler(vhf_freq_handler)
 

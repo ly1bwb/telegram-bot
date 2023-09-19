@@ -32,7 +32,7 @@ from threading import Thread
 
 load_dotenv()
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 application = Application.builder().token(os.environ.get("TELEGRAM_BOT_TOKEN")).build()
 
@@ -50,6 +50,8 @@ main_camera_url = (
 mqtt_host = "mqtt.vurk"
 vhf_rig_freq = "000000000"
 vhf_rig_mode = "FT8"
+
+sdr_state = "n/a"
 
 vhf_rot_az = 0
 vhf_rot_el = 0
@@ -171,6 +173,10 @@ def mqtt_radio_loop():
     mqtt_loop("VURK/radio/IC9700/#", read_mqtt_vhf_freq)
 
 
+def mqtt_sdr_loop():
+    mqtt_loop("stat/tasmota_E65E89/#", read_mqtt_sdr_state)
+
+
 def mqtt_loop(topic, handler):
     mqtt_client = mqtt.Client()
     mqtt_client.connect(mqtt_host, 1883, 60)
@@ -201,6 +207,13 @@ def read_mqtt_vhf_freq(client, userdata, message):
         vhf_rig_freq = payload_value
     if message.topic == "VURK/radio/IC9700/mode":
         vhf_rig_mode = payload_value
+
+
+def read_mqtt_sdr_state(client, userdata, message):
+    global sdr_state
+    payload_value = str(message.payload.decode("utf-8"))
+    if message.topic == "stat/tasmota_E65E89/POWER1":
+        sdr_state = payload_value
 
 
 async def set_vhf_az(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -380,6 +393,11 @@ def change_mode(mode):
     return
 
 
+def change_sdr_state(state):
+    _mqtt_publish("cmnd/tasmota_E65E89/POWER1", state)
+    return
+
+
 def _mqtt_publish(topic, message):
     mqtt_client = mqtt.Client()
     mqtt_client.connect(mqtt_host, 1883, 60)
@@ -511,6 +529,41 @@ async def vhf_freq(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     )
     return ConversationHandler.END
 
+async def set_sdr_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    log.info(f"Called set_sdr_state() by {update.message.from_user['username']}")
+    username = update.message.from_user["username"]
+    if len(context.args) > 0 and check_permissions(username, update, context):
+        new_state = context.args[-1].upper()
+
+        if new_state == "ON" or new_state == "OFF":
+            if new_state != sdr_state:
+                msg = (
+                    "Perjungiu MFJ Switch state iš <b>"
+                    + sdr_state
+                    + "</b> į <b>"
+                    + new_state
+                    + "</b>"
+                )
+                change_sdr_state(new_state)
+            else:
+                msg = (
+                    "MFJ Switch jau yra <b>"
+                    + new_state
+                    + "</b>"
+                )
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, text=msg, parse_mode=ParseMode.HTML
+            )
+        else:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, text=f"Neteisingas parametras"
+            )
+    else:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id, text=f"Dabar MFJ Switch yra <b>{sdr_state}</b>\nGalimi parametrarai: <i>on, off</i>", parse_mode=ParseMode.HTML
+        )
+    return ConversationHandler.END
+
 
 async def calculate_azimuth_by_loc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user_id = update.message.from_user["id"]
@@ -577,6 +630,8 @@ application.add_handler(CommandHandler("moon", get_moon_vhf_azel))
 
 application.add_handler(CommandHandler("moon_azel", set_moon_vhf_azel))
 
+application.add_handler(CommandHandler("sdr", set_sdr_state))
+
 application.add_handler(CommandHandler("sveiki", sveiki))
 
 application.add_handler(CommandHandler("status", get_status))
@@ -604,6 +659,8 @@ if __name__ == "__main__":
     mqtt_rig_thread.start()
     mqtt_rot_thread = Thread(target=mqtt_rotator_loop)
     mqtt_rot_thread.start()
+    mqtt_sdr_thread = Thread(target=mqtt_sdr_loop)
+    mqtt_sdr_thread.start()
     # Telegram thread must be last
     telegram_thread = Thread(target=application.run_polling(allowed_updates=Update.ALL_TYPES))
     telegram_thread.start()

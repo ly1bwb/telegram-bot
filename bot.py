@@ -32,7 +32,7 @@ from threading import Thread
 
 load_dotenv()
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 
 application = Application.builder().token(os.environ.get("TELEGRAM_BOT_TOKEN")).build()
 
@@ -56,7 +56,7 @@ sdr_state = "n/a"
 vhf_rot_az = 0
 vhf_rot_el = 0
 
-CAM, FREQ, AZ, EL, MODE = range(5)
+CAM, FREQ, AZ, EL, MODE, SDR_STAT = range(6)
 
 valid_users = {
     "LY2EN",
@@ -559,11 +559,53 @@ async def set_sdr_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
                 chat_id=update.effective_chat.id, text=f"Neteisingas parametras"
             )
     else:
+        options = [
+            [
+                InlineKeyboardButton(text="ON", callback_data="on"),
+                InlineKeyboardButton(text="OFF", callback_data="off"),
+            ],
+        ]
+        reply_markup = InlineKeyboardMarkup(options)
         await context.bot.send_message(
-            chat_id=update.effective_chat.id, text=f"Dabar MFJ Switch yra <b>{sdr_state}</b>\nGalimi parametrarai: <i>on, off</i>", parse_mode=ParseMode.HTML
+            chat_id=update.effective_chat.id,
+            text=f"Dabar MFJ Switch yra <b>{sdr_state}</b>\nPasirinkite arba įveskite naują MFJ Switch būseną:",
+            reply_markup=reply_markup,
+            parse_mode=ParseMode.HTML,
         )
-    return ConversationHandler.END
+    return SDR_STAT
 
+async def read_sdr_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    log.info(f"Called read_sdr_state()")
+    query = update.callback_query
+    await query.answer()
+    username = query.from_user["username"]
+
+    if check_permissions(username, update, context):
+        new_state = query.data.upper()
+        old_state = sdr_state
+
+        if new_state == "ON" or new_state == "OFF":
+            if new_state != old_state:
+                msg = (
+                    "Perjungiu MFJ Switch state iš <b>"
+                    + sdr_state
+                    + "</b> į <b>"
+                    + new_state
+                    + "</b>"
+                )
+                change_sdr_state(new_state)
+            else:
+                msg = (
+                    "MFJ Switch jau yra <b>"
+                    + new_state
+                    + "</b>"
+                )
+            await query.edit_message_text(text=msg, parse_mode=ParseMode.HTML)
+        else:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, text=f"Neteisingas parametras"
+            )
+    return ConversationHandler.END
 
 async def calculate_azimuth_by_loc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user_id = update.message.from_user["id"]
@@ -610,6 +652,12 @@ vhf_mode_handler = ConversationHandler(
     fallbacks=[CommandHandler("set_vhf_mode", set_vhf_mode)],
 )
 
+sdr_state_handler = ConversationHandler(
+    entry_points=[CommandHandler("sdr", set_sdr_state)],
+    states={SDR_STAT: [CallbackQueryHandler(read_sdr_state)]},
+    fallbacks=[CommandHandler("sdr", set_sdr_state)],
+)
+
 application.add_handler(CommandHandler("start", start))
 
 application.add_handler(CommandHandler("roof_camera", roof_camera))
@@ -630,8 +678,6 @@ application.add_handler(CommandHandler("moon", get_moon_vhf_azel))
 
 application.add_handler(CommandHandler("moon_azel", set_moon_vhf_azel))
 
-application.add_handler(CommandHandler("sdr", set_sdr_state))
-
 application.add_handler(CommandHandler("sveiki", sveiki))
 
 application.add_handler(CommandHandler("status", get_status))
@@ -643,6 +689,8 @@ application.add_handler(vhf_az_handler)
 application.add_handler(vhf_el_handler)
 
 application.add_handler(vhf_mode_handler)
+
+application.add_handler(sdr_state_handler)
 
 application.add_handler(
     MessageHandler(

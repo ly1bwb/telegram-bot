@@ -8,6 +8,8 @@ import logging
 import datetime
 import urllib.request
 import socket
+import asyncio
+import telegram
 
 import paho.mqtt.client as mqtt
 
@@ -27,14 +29,17 @@ from telegram.ext import (
     CallbackQueryHandler,
     ConversationHandler,
     MessageHandler,
+    ApplicationBuilder,
 )
 from threading import Thread
 
 load_dotenv()
 
-VERSION = "1.1.1"
+VERSION = "1.2.0"
 
-application = Application.builder().token(os.environ.get("TELEGRAM_BOT_TOKEN")).build()
+bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
+application = ApplicationBuilder().token(bot_token).build()
+default_chat_id = os.environ.get("TELEGRAM_CHAT_ID")
 
 start_text = "Labas - aš esu LY1BWB stoties botas."
 roof_camera_host = "http://192.168.42.177/cgi-bin/hi3510/"
@@ -52,11 +57,12 @@ vhf_rig_freq = "000000000"
 vhf_rig_mode = "FT8"
 
 sdr_state = "n/a"
+monitors_state = "n/a"
 
 vhf_rot_az = 0
 vhf_rot_el = 0
 
-CAM, FREQ, AZ, EL, MODE, SDR_STAT = range(6)
+CAM, FREQ, AZ, EL, MODE, SDR_STAT, MONITORS = range(7)
 
 valid_users = {
     "LY2EN",
@@ -177,6 +183,10 @@ def mqtt_sdr_loop():
     mqtt_loop("stat/tasmota_E65E89/#", read_mqtt_sdr_state)
 
 
+def mqtt_monitors_loop():
+    mqtt_loop("stat/tasmota_050E88/#", read_mqtt_monitors_state)
+
+
 def mqtt_loop(topic, handler):
     mqtt_client = mqtt.Client()
     mqtt_client.connect(mqtt_host, 1883, 60)
@@ -213,8 +223,45 @@ def read_mqtt_sdr_state(client, userdata, message):
     global sdr_state
     payload_value = str(message.payload.decode("utf-8"))
     if message.topic == "stat/tasmota_E65E89/POWER1":
+        if sdr_state != payload_value:
+            if payload_value == "ON":
+                msg = "Įjungtas"
+            else:
+                msg = "Išjungtas"
+            asyncio.run(send_mqtt_state_to_telegram(f"📻 SDR MFJ Switch {msg}", default_chat_id))
         sdr_state = payload_value
 
+
+def read_mqtt_monitors_state(client, userdata, message):
+    global monitors_state
+    payload_value = str(message.payload.decode("utf-8"))
+    if message.topic == "stat/tasmota_050E88/POWER":
+        if monitors_state != payload_value:
+            if payload_value == "ON":
+                msg = "Įjungti"
+            else:
+                msg = "Išjungti"
+            
+            # For running on Windows
+            # asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+            asyncio.run(send_mqtt_state_to_telegram(f"🖥️ Monitoriai {msg}", default_chat_id))
+
+            # alternative method, just for reference
+            # loop = asyncio.new_event_loop()
+            # loop.run_until_complete(send_mqtt_state_to_telegram(f"🖥️ Monitoriai {msg}", default_chat_id))
+            # loop.close()
+        monitors_state = payload_value
+
+async def send_mqtt_state_to_telegram(text, chatid):
+    app = ApplicationBuilder().token(bot_token).build()
+    await app.bot.send_message(chat_id=chatid, text=text)
+
+    # alternative method, maybe simpler
+    # await telegram.Bot(bot_token).send_message(
+    #     chat_id=chatid,
+    #     text=text,
+    # )
 
 async def set_vhf_az(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log_func("set_vhf_az()", update)
@@ -395,6 +442,11 @@ def change_mode(mode):
 
 def change_sdr_state(state):
     _mqtt_publish("cmnd/tasmota_E65E89/POWER1", state)
+    return
+
+
+def change_monitors_state(state):
+    _mqtt_publish("cmnd/tasmota_050E88/POWER1", state)
     return
 
 
@@ -607,6 +659,94 @@ async def read_sdr_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             )
     return ConversationHandler.END
 
+async def set_monitors_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    log.info(f"Called set_monitors_state() by {update.message.from_user['username']}")
+    username = update.message.from_user["username"]
+    if len(context.args) > 0 and check_permissions(username, update, context):
+        new_state = context.args[-1].upper()
+
+        if new_state == "ON" or new_state == "OFF":
+            if new_state != monitors_state:
+                msg_action = "Įjungiu" if new_state == "ON" else "Išjungiu"
+                msg = (
+                    f"{msg_action} monitorius"
+                )
+                change_monitors_state(new_state)
+            else:
+                if monitors_state == "ON":
+                    msg_action = "Įjungti"
+                elif monitors_state == "OFF":
+                    msg_action = "Išjungti"
+                else:
+                    msg_action = "Nežinoma būsena"
+                msg = (
+                    f"Monitoriai jau yra {msg_action}"
+                )
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, text=msg, parse_mode=ParseMode.HTML
+            )
+        else:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, text=f"Neteisingas parametras"
+            )
+    else:
+        options = [
+            [
+                InlineKeyboardButton(text="ON", callback_data="on"),
+                InlineKeyboardButton(text="OFF", callback_data="off"),
+            ],
+        ]
+        reply_markup = InlineKeyboardMarkup(options)
+        
+        if monitors_state == "ON":
+            msg_action = "Įjungti"
+        elif monitors_state == "OFF":
+            msg_action = "Išjungti"
+        else:
+            msg_action = "Nežinoma būsena"
+
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"Dabar monitoriai yra <b>{msg_action}</b>\nPasirinkite arba įveskite naują monitorių būseną:",
+            reply_markup=reply_markup,
+            parse_mode=ParseMode.HTML,
+        )
+    return MONITORS
+
+async def read_monitors_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    log.info(f"Called read_monitors_state()")
+    query = update.callback_query
+    await query.answer()
+    username = query.from_user["username"]
+
+    if check_permissions(username, update, context):
+        new_state = query.data.upper()
+        old_state = monitors_state
+
+        if new_state == "ON" or new_state == "OFF":
+            if new_state != old_state:
+                msg_state = "Įjungiu" if new_state == "ON" else "Išjungiu"
+                msg = (
+                    f"{msg_state} monitorius"
+                )
+                change_monitors_state(new_state)
+            else:
+                if monitors_state == "ON":
+                    msg_action = "Įjungti"
+                elif monitors_state == "OFF":
+                    msg_action = "Išjungti"
+                else:
+                    msg_action = "Nežinoma būsena"
+                msg = (
+                    f"Monitoriai jau yra {msg_action}"
+                )
+            await query.edit_message_text(text=msg, parse_mode=ParseMode.HTML)
+        else:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, text=f"Neteisingas parametras"
+            )
+    return ConversationHandler.END
+
 async def calculate_azimuth_by_loc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user_id = update.message.from_user["id"]
     loc = update.message.text
@@ -658,6 +798,12 @@ sdr_state_handler = ConversationHandler(
     fallbacks=[CommandHandler("sdr", set_sdr_state)],
 )
 
+monitors_state_handler = ConversationHandler(
+    entry_points=[CommandHandler("monitors", set_monitors_state)],
+    states={MONITORS: [CallbackQueryHandler(read_monitors_state)]},
+    fallbacks=[CommandHandler("monitors", set_monitors_state)],
+)
+
 application.add_handler(CommandHandler("start", start))
 
 application.add_handler(CommandHandler("roof_camera", roof_camera))
@@ -692,6 +838,8 @@ application.add_handler(vhf_mode_handler)
 
 application.add_handler(sdr_state_handler)
 
+application.add_handler(monitors_state_handler)
+
 application.add_handler(
     MessageHandler(
         filters.Regex(
@@ -701,7 +849,6 @@ application.add_handler(
     )
 )
 
-
 if __name__ == "__main__":
     mqtt_rig_thread = Thread(target=mqtt_radio_loop)
     mqtt_rig_thread.start()
@@ -709,6 +856,8 @@ if __name__ == "__main__":
     mqtt_rot_thread.start()
     mqtt_sdr_thread = Thread(target=mqtt_sdr_loop)
     mqtt_sdr_thread.start()
+    mqtt_monitors_thread = Thread(target=mqtt_monitors_loop)
+    mqtt_monitors_thread.start()
     # Telegram thread must be last
     telegram_thread = Thread(target=application.run_polling(allowed_updates=Update.ALL_TYPES))
     telegram_thread.start()

@@ -1,20 +1,10 @@
 import os
-import time
-import math
-import ephem
-import pyproj
-import maidenhead as mh
-import logging
-import datetime
-import urllib.request
 import socket
 import asyncio
 import telegram
 
 import paho.mqtt.client as mqtt
 
-from math import pi
-from html.parser import HTMLParser
 from dotenv import load_dotenv
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.constants import (
@@ -33,14 +23,20 @@ from telegram.ext import (
 )
 from threading import Thread
 
+from settings import *
+from functions.default import *
+from functions.camera import *
+from functions.geo import *
+
 load_dotenv()
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 
 bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
 application = ApplicationBuilder().token(bot_token).build()
 default_chat_id = os.environ.get("TELEGRAM_CHAT_ID")
 
+<<<<<<< HEAD
 start_text = "Labas - aš esu LY1BWB stoties botas."
 roof_camera_host = "http://192.168.42.177/cgi-bin/hi3510/"
 roof_camera_url = roof_camera_host + "snap.cgi?&-getpic"
@@ -63,121 +59,17 @@ monitors_state = "n/a"
 vhf_rot_az = 0
 vhf_rot_el = 0
 
+=======
+>>>>>>> Example split up into files
 CAM, FREQ, AZ, EL, MODE, SDR_STAT, MONITORS = range(7)
-
-valid_users = {
-    "LY2EN",
-    "sutemos",
-    "LY1LB",
-    "LY0NAS",
-    "LY5AT",
-    "LY1WS",
-    "LY2DC",
-    "LY1JA",
-    "LY4AU",
-    "volwerene"
-}
-
-home_qth = "KO24PR15"
-
-log = logging
-log.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
-
-
-class webcam_parser(HTMLParser):
-    roof_camera_img = ""
-
-    def handle_startendtag(self, tag, attrs):
-        if tag == "img":
-            self.roof_camera_img = roof_camera_host + attrs[0][1]
-            logging.info("Found IMG: " + self.roof_camera_img)
-
-
-def log_func(name, update):
-    log.info(f"Called {name} by {update.message.from_user['username']}")
-
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)
-    return ConversationHandler.END
-
-
-def angle_between_loc(x1, y1, x2, y2):
-    geodesic = pyproj.Geod(ellps="WGS84")
-    fwd_azimuth, _back_azimuth, distance = geodesic.inv(y1, x1, y2, x2)
-    return fwd_azimuth + 180, distance
-
-
-def angle_distance_qth(loc_qth):
-    (x1, y1) = mh.to_location(loc_qth)
-    (x2, y2) = mh.to_location(home_qth)
-    return angle_between_loc(x1, y1, x2, y2)
-
-
-def get_moon_azel(qth):
-    home = ephem.Observer()
-    _lat, _lon = mh.to_location(qth)
-    home.lat = str(_lat)
-    home.lon = str(_lon)
-    home.date = datetime.datetime.utcnow()
-    moon = ephem.Moon()
-    moon.compute(home)
-    return int(moon.az / pi * 180), int(moon.alt / pi * 180)
-
-
-async def lower_camera(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    log_func("lower_camera()", update)
-    web_file = urllib.request.urlopen(lower_camera_url)
-    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
-    return ConversationHandler.END
-
-
-async def rig_camera(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    log_func("rig_camera()", update)
-    web_file = urllib.request.urlopen(rig_camera_url)
-    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
-    return ConversationHandler.END
-
-async def window_camera(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    log_func("window)camera()", update)
-    web_file = urllib.request.urlopen(window_camera_url, timeout=5)
-    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
-    return ConversationHandler.END
-
-async def main_camera(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    log_func("main_camera()", update)
-    await context.bot.send_chat_action(
-        chat_id=update.effective_chat.id, action=ChatAction.TYPING
-    )
-    web_file = urllib.request.urlopen(main_camera_url)
-    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
-    return ConversationHandler.END
-
-
-async def roof_camera(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    log_func("roof_camera()", update)
-    #await update._bot.send_chat_action(
-    #    chat_id=update.effective_chat.id, action=ChatAction.TYPING
-    #)
-    await context.bot.send_chat_action(
-        chat_id=update.effective_chat.id, action=ChatAction.TYPING
-    )
-    web_cam_url = urllib.request.urlopen(roof_camera_url)
-    web_cam_html = web_cam_url.read()
-    parser = webcam_parser()
-    parser.feed(web_cam_html.decode("utf-8"))
-    web_file = urllib.request.urlopen(parser.roof_camera_img)
-    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
 
 
 def mqtt_rotator_loop():
-    mqtt_loop("VURK/rotator/vhf/#", read_mqtt_rotator_azel)
+    mqtt_loop(mqtt_vhf_rot_path + "/#", read_mqtt_rotator_azel)
 
 
 def mqtt_radio_loop():
-    mqtt_loop("VURK/radio/IC9700/#", read_mqtt_vhf_freq)
+    mqtt_loop(mqtt_radio_path + "/#", read_mqtt_vhf_freq)
 
 
 def mqtt_vhf_sdr_loop():
@@ -202,11 +94,11 @@ def read_mqtt_rotator_azel(client, userdata, message):
     global vhf_rot_az
     global vhf_rot_el
     payload_value = str(message.payload.decode("utf-8"))
-    if message.topic == "VURK/rotator/vhf/azimuth":
+    if message.topic == mqtt_vhf_rot_path + "/azimuth":
         vhf_rot_az = payload_value
-    if message.topic == "VURK/rotator/vhf/elevation":
+    if message.topic == mqtt_vhf_rot_path + "/elevation":
         vhf_rot_el = payload_value
-    if message.topic == "VURK/rotator/vhf/direction":
+    if message.topic == mqtt_vhf_rot_path + "/direction":
         pass
 
 
@@ -214,9 +106,9 @@ def read_mqtt_vhf_freq(client, userdata, message):
     global vhf_rig_freq
     global vhf_rig_mode
     payload_value = str(message.payload.decode("utf-8"))
-    if message.topic == "VURK/radio/IC9700/frequency":
+    if message.topic == mqtt_radio_path + "/frequency":
         vhf_rig_freq = payload_value
-    if message.topic == "VURK/radio/IC9700/mode":
+    if message.topic == mqtt_radio_path + "/mode":
         vhf_rig_mode = payload_value
 
 
@@ -420,24 +312,24 @@ async def get_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return ConversationHandler.END
 
 def change_az(degrees):
-    _mqtt_publish("VURK/rotator/vhf/set/azimuth", degrees)
+    _mqtt_publish(mqtt_vhf_rot_path + "/set/azimuth", degrees)
     return
 
 
 def change_el(degrees):
     if int(degrees) >= 0 and int(degrees) < 360:
-        _mqtt_publish("VURK/rotator/vhf/set/elevation", degrees)
+        _mqtt_publish(mqtt_vhf_rot_path + "/set/elevation", degrees)
     log.info("change_el({})".format(degrees))
     return
 
 
 def change_freq(freq):
-    _mqtt_publish("VURK/radio/IC9700/set/frequency", freq)
+    _mqtt_publish(mqtt_radio_path + "/set/frequency", freq)
     return
 
 
 def change_mode(mode):
-    _mqtt_publish("VURK/radio/IC9700/set/mode", mode)
+    _mqtt_publish(mqtt_radio_path + "/set/mode", mode)
     return
 
 

@@ -56,7 +56,8 @@ mqtt_host = "mqtt.vurk"
 vhf_rig_freq = "000000000"
 vhf_rig_mode = "FT8"
 
-sdr_state = "n/a"
+vhf_sdr_state = "n/a"
+uhf_sdr_state = "n/a"
 monitors_state = "n/a"
 
 vhf_rot_az = 0
@@ -179,8 +180,8 @@ def mqtt_radio_loop():
     mqtt_loop("VURK/radio/IC9700/#", read_mqtt_vhf_freq)
 
 
-def mqtt_sdr_loop():
-    mqtt_loop("stat/tasmota_E65E89/#", read_mqtt_sdr_state)
+def mqtt_vhf_sdr_loop():
+    mqtt_loop("stat/tasmota_E65E89/#", read_mqtt_vhf_sdr_state)
 
 
 def mqtt_monitors_loop():
@@ -219,8 +220,8 @@ def read_mqtt_vhf_freq(client, userdata, message):
         vhf_rig_mode = payload_value
 
 
-def read_mqtt_sdr_state(client, userdata, message):
-    global sdr_state
+def read_mqtt_vhf_sdr_state(client, userdata, message):
+    global vhf_sdr_state
     payload_value = str(message.payload.decode("utf-8"))
     if message.topic == "stat/tasmota_E65E89/POWER1":
         if sdr_state != payload_value:
@@ -228,8 +229,8 @@ def read_mqtt_sdr_state(client, userdata, message):
                 msg = "Įjungtas"
             else:
                 msg = "Išjungtas"
-            asyncio.run(send_mqtt_state_to_telegram(f"📻 SDR MFJ Switch {msg}", default_chat_id))
-        sdr_state = payload_value
+            asyncio.run(send_mqtt_state_to_telegram(f"📻 SDR MFJ VHF Switch {msg}", default_chat_id))
+        vhf_sdr_state = payload_value
 
 
 def read_mqtt_monitors_state(client, userdata, message):
@@ -440,7 +441,7 @@ def change_mode(mode):
     return
 
 
-def change_sdr_state(state):
+def change_vhf_sdr_state(state):
     _mqtt_publish("cmnd/tasmota_E65E89/POWER1", state)
     return
 
@@ -581,25 +582,25 @@ async def vhf_freq(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     )
     return ConversationHandler.END
 
-async def set_sdr_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    log.info(f"Called set_sdr_state() by {update.message.from_user['username']}")
+async def set_vhf_sdr_switch_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    log.info(f"Called set_vhf_sdr_switch_state() by {update.message.from_user['username']}")
     username = update.message.from_user["username"]
     if len(context.args) > 0 and check_permissions(username, update, context):
         new_state = context.args[-1].upper()
 
         if new_state == "ON" or new_state == "OFF":
-            if new_state != sdr_state:
+            if new_state != vhf_sdr_state:
                 msg = (
-                    "Perjungiu MFJ Switch state iš <b>"
-                    + sdr_state
+                    "Perjungiu VHF MFJ Switch state iš <b>"
+                    + vhf_sdr_state
                     + "</b> į <b>"
                     + new_state
                     + "</b>"
                 )
-                change_sdr_state(new_state)
+                change_vhf_sdr_state(new_state)
             else:
                 msg = (
-                    "MFJ Switch jau yra <b>"
+                    "VHF MFJ Switch jau yra <b>"
                     + new_state
                     + "</b>"
                 )
@@ -620,27 +621,27 @@ async def set_sdr_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         reply_markup = InlineKeyboardMarkup(options)
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text=f"Dabar MFJ Switch yra <b>{sdr_state}</b>\nPasirinkite arba įveskite naują MFJ Switch būseną:",
+            text=f"Dabar MFJ VHF Switch yra <b>{vhf_sdr_state}</b>\nPasirinkite arba įveskite naują MFJ Switch būseną:",
             reply_markup=reply_markup,
             parse_mode=ParseMode.HTML,
         )
     return SDR_STAT
 
-async def read_sdr_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    log.info(f"Called read_sdr_state()")
+async def read_vhf_sdr_switch_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    log.info(f"Called read_vhf_sdr_switch_state()")
     query = update.callback_query
     await query.answer()
     username = query.from_user["username"]
 
     if check_permissions(username, update, context):
         new_state = query.data.upper()
-        old_state = sdr_state
+        old_state = vhf_sdr_state
 
         if new_state == "ON" or new_state == "OFF":
             if new_state != old_state:
                 msg = (
-                    "Perjungiu MFJ Switch state iš <b>"
-                    + sdr_state
+                    "Perjungiu MFJ VHF Switch state iš <b>"
+                    + vhf_sdr_state
                     + "</b> į <b>"
                     + new_state
                     + "</b>"
@@ -648,7 +649,7 @@ async def read_sdr_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 change_sdr_state(new_state)
             else:
                 msg = (
-                    "MFJ Switch jau yra <b>"
+                    "MFJ VHF Switch jau yra <b>"
                     + new_state
                     + "</b>"
                 )
@@ -792,10 +793,10 @@ vhf_mode_handler = ConversationHandler(
     fallbacks=[CommandHandler("set_vhf_mode", set_vhf_mode)],
 )
 
-sdr_state_handler = ConversationHandler(
-    entry_points=[CommandHandler("sdr", set_sdr_state)],
-    states={SDR_STAT: [CallbackQueryHandler(read_sdr_state)]},
-    fallbacks=[CommandHandler("sdr", set_sdr_state)],
+vhf_sdr_state_handler = ConversationHandler(
+    entry_points=[CommandHandler("vhf_sdr", set_vhf_sdr_switch_state)],
+    states={SDR_STAT: [CallbackQueryHandler(read_vhf_sdr_switch_state)]},
+    fallbacks=[CommandHandler("vhf_sdr", set_vhf_sdr_switch_state)],
 )
 
 monitors_state_handler = ConversationHandler(
@@ -836,7 +837,7 @@ application.add_handler(vhf_el_handler)
 
 application.add_handler(vhf_mode_handler)
 
-application.add_handler(sdr_state_handler)
+application.add_handler(vhf_sdr_state_handler)
 
 application.add_handler(monitors_state_handler)
 
@@ -854,8 +855,8 @@ if __name__ == "__main__":
     mqtt_rig_thread.start()
     mqtt_rot_thread = Thread(target=mqtt_rotator_loop)
     mqtt_rot_thread.start()
-    mqtt_sdr_thread = Thread(target=mqtt_sdr_loop)
-    mqtt_sdr_thread.start()
+    mqtt_vhf_sdr_thread = Thread(target=mqtt_vhf_sdr_loop)
+    mqtt_vhf_sdr_thread.start()
     mqtt_monitors_thread = Thread(target=mqtt_monitors_loop)
     mqtt_monitors_thread.start()
     # Telegram thread must be last

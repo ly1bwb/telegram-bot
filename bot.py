@@ -1,20 +1,16 @@
 import os
-import time
-import math
-import ephem
-import pyproj
-import maidenhead as mh
+from threading import Thread
 import logging
 import datetime
 import urllib.request
 import socket
 import asyncio
-import telegram
+from html.parser import HTMLParser
+from math import pi
 
 import paho.mqtt.client as mqtt
 
-from math import pi
-from html.parser import HTMLParser
+
 from dotenv import load_dotenv
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.constants import (
@@ -22,7 +18,6 @@ from telegram.constants import (
     ChatAction,
 )
 from telegram.ext import (
-    Application,
     filters,
     ContextTypes,
     CommandHandler,
@@ -31,7 +26,11 @@ from telegram.ext import (
     MessageHandler,
     ApplicationBuilder,
 )
-from threading import Thread
+
+import maidenhead as mh
+
+import ephem
+import pyproj
 
 load_dotenv()
 

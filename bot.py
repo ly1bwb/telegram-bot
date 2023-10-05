@@ -36,31 +36,6 @@ bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
 application = ApplicationBuilder().token(bot_token).build()
 default_chat_id = os.environ.get("TELEGRAM_CHAT_ID")
 
-<<<<<<< HEAD
-start_text = "Labas - aš esu LY1BWB stoties botas."
-roof_camera_host = "http://192.168.42.177/cgi-bin/hi3510/"
-roof_camera_url = roof_camera_host + "snap.cgi?&-getpic"
-
-lower_camera_url = "http://192.168.42.10/webcam/webcam3.jpg"
-rig_camera_url = "http://192.168.42.10/webcam/webcam1.jpg"
-window_camera_url = "http://192.168.42.129/snapshot.jpg?"
-main_camera_url = (
-    "http://192.168.42.183/onvifsnapshot/media_service/snapshot?channel=1&subtype=0"
-)
-
-mqtt_host = "mqtt.vurk"
-vhf_rig_freq = "000000000"
-vhf_rig_mode = "FT8"
-
-vhf_sdr_state = "n/a"
-uhf_sdr_state = "n/a"
-monitors_state = "n/a"
-
-vhf_rot_az = 0
-vhf_rot_el = 0
-
-=======
->>>>>>> Example split up into files
 CAM, FREQ, AZ, EL, MODE, SDR_STAT, MONITORS = range(7)
 
 

@@ -6,13 +6,31 @@ from telegram.constants import ParseMode
 
 async def vhf_freq(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     ff = format_frequency(get_vhf_rig_freq())
+    src_mode = get_vhf_rig_mode()
+    if src_mode == "FM":
+        mm = "nfm"
+    elif src_mode == "AM":
+        mm = "am"
+    elif src_mode == "USB":
+        mm = "usb"
+    elif src_mode == "LSB":
+        mm = "lsb"
+    elif src_mode == "CW" or src_mode == "CWR":
+        mm = "cw"
+    else:
+        mm = "nfm"
+
     msg = (
         "VHF stoties dažnis: \n<b>"
         + ff
         + " ("
         + get_vhf_rig_mode()
         + ")</b>"
-        + "\n👉 <a href='http://sdr.vhf.lt:8073'>Klausyti gyvai</a>"
+        + "\n👉 <a href='http://sdr.vhf.lt:8073/#freq="
+        + get_vhf_rig_freq()
+        + ",mod="
+        + mm
+        + "'>Klausyti gyvai</a>"
     )
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text=msg, parse_mode=ParseMode.HTML

@@ -12,7 +12,7 @@ async def vhf_freq(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         + " ("
         + get_vhf_rig_mode()
         + ")</b>"
-        + "\n👉 <a href='http://sdr.vhf.lt:8000/ft847'>Klausyti gyvai</a>"
+        + "\n👉 <a href='http://sdr.vhf.lt:8073'>Klausyti gyvai</a>"
     )
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text=msg, parse_mode=ParseMode.HTML

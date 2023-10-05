@@ -30,14 +30,13 @@ from functions.geo import *
 
 load_dotenv()
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 
 bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
 application = ApplicationBuilder().token(bot_token).build()
 default_chat_id = os.environ.get("TELEGRAM_CHAT_ID")
 
-CAM, FREQ, AZ, EL, MODE, SDR_STAT, MONITORS = range(7)
-
+CAM, FREQ, AZ, EL, MODE, SDR_STAT, MONITORS, LIGHTS = range(8)
 
 def mqtt_rotator_loop():
     mqtt_loop(mqtt_vhf_rot_path + "/#", read_mqtt_rotator_azel)
@@ -53,6 +52,10 @@ def mqtt_vhf_sdr_loop():
 
 def mqtt_monitors_loop():
     mqtt_loop("stat/tasmota_050E88/#", read_mqtt_monitors_state)
+
+
+def mqtt_lights_loop():
+    mqtt_loop("stat/tasmota_C7DD34/#", read_mqtt_lights_state)
 
 
 def mqtt_loop(topic, handler):
@@ -120,6 +123,22 @@ def read_mqtt_monitors_state(client, userdata, message):
             # loop.run_until_complete(send_mqtt_state_to_telegram(f"🖥️ Monitoriai {msg}", default_chat_id))
             # loop.close()
         monitors_state = payload_value
+
+
+def read_mqtt_lights_state(client, userdata, message):
+    global lights_state
+    payload_value = str(message.payload.decode("utf-8"))
+    if message.topic == "stat/tasmota_C7DD34/POWER1":
+        if lights_state != payload_value:
+            if payload_value == "ON":
+                msg = "Įjungti"
+            else:
+                msg = "Išjungti"
+            
+            asyncio.run(send_mqtt_state_to_telegram(f"💡 Šviestuvai {msg}", default_chat_id))
+
+        lights_state = payload_value
+
 
 async def send_mqtt_state_to_telegram(text, chatid):
     app = ApplicationBuilder().token(bot_token).build()
@@ -315,6 +334,11 @@ def change_vhf_sdr_state(state):
 
 def change_monitors_state(state):
     _mqtt_publish("cmnd/tasmota_050E88/POWER1", state)
+    return
+
+
+def change_lights_state(state):
+    _mqtt_publish("cmnd/tasmota_C7DD34/POWER1", state)
     return
 
 
@@ -615,6 +639,94 @@ async def read_monitors_state(update: Update, context: ContextTypes.DEFAULT_TYPE
             )
     return ConversationHandler.END
 
+async def set_lights_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    log.info(f"Called set_lights_state() by {update.message.from_user['username']}")
+    username = update.message.from_user["username"]
+    if len(context.args) > 0 and check_permissions(username, update, context):
+        new_state = context.args[-1].upper()
+
+        if new_state == "ON" or new_state == "OFF":
+            if new_state != lights_state:
+                msg_action = "Įjungiu" if new_state == "ON" else "Išjungiu"
+                msg = (
+                    f"{msg_action} šviestuvus"
+                )
+                change_lights_state(new_state)
+            else:
+                if lights_state == "ON":
+                    msg_action = "Įjungti"
+                elif lights_state == "OFF":
+                    msg_action = "Išjungti"
+                else:
+                    msg_action = "Nežinoma būsena"
+                msg = (
+                    f"Šviestuvai jau yra {msg_action}"
+                )
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, text=msg, parse_mode=ParseMode.HTML
+            )
+        else:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, text=f"Neteisingas parametras"
+            )
+    else:
+        options = [
+            [
+                InlineKeyboardButton(text="ON", callback_data="on"),
+                InlineKeyboardButton(text="OFF", callback_data="off"),
+            ],
+        ]
+        reply_markup = InlineKeyboardMarkup(options)
+        
+        if lights_state == "ON":
+            msg_action = "Įjungti"
+        elif lights_state == "OFF":
+            msg_action = "Išjungti"
+        else:
+            msg_action = "Nežinoma būsena"
+
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"Dabar šviestuvai yra <b>{msg_action}</b>\nPasirinkite arba įveskite naują šviestuvų būseną:",
+            reply_markup=reply_markup,
+            parse_mode=ParseMode.HTML,
+        )
+    return LIGHTS
+
+async def read_lights_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    log.info(f"Called read_lights_state()")
+    query = update.callback_query
+    await query.answer()
+    username = query.from_user["username"]
+
+    if check_permissions(username, update, context):
+        new_state = query.data.upper()
+        old_state = lights_state
+
+        if new_state == "ON" or new_state == "OFF":
+            if new_state != old_state:
+                msg_state = "Įjungiu" if new_state == "ON" else "Išjungiu"
+                msg = (
+                    f"{msg_state} šviestuvus"
+                )
+                change_lights_state(new_state)
+            else:
+                if lights_state == "ON":
+                    msg_action = "Įjungti"
+                elif lights_state == "OFF":
+                    msg_action = "Išjungti"
+                else:
+                    msg_action = "Nežinoma būsena"
+                msg = (
+                    f"Šviestuvai jau yra {msg_action}"
+                )
+            await query.edit_message_text(text=msg, parse_mode=ParseMode.HTML)
+        else:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, text=f"Neteisingas parametras"
+            )
+    return ConversationHandler.END
+
 async def calculate_azimuth_by_loc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user_id = update.message.from_user["id"]
     loc = update.message.text
@@ -672,6 +784,12 @@ monitors_state_handler = ConversationHandler(
     fallbacks=[CommandHandler("monitors", set_monitors_state)],
 )
 
+lights_handler = ConversationHandler(
+    entry_points=[CommandHandler("ligths", set_lights_state)],
+    states={LIGHTS: [CallbackQueryHandler(read_lights_state)]},
+    fallbacks=[CommandHandler("lights", set_lights_state)],
+)
+
 application.add_handler(CommandHandler("start", start))
 
 application.add_handler(CommandHandler("roof_camera", roof_camera))
@@ -708,6 +826,8 @@ application.add_handler(vhf_sdr_state_handler)
 
 application.add_handler(monitors_state_handler)
 
+application.add_handler(lights_handler)
+
 application.add_handler(
     MessageHandler(
         filters.Regex(
@@ -726,6 +846,8 @@ if __name__ == "__main__":
     mqtt_vhf_sdr_thread.start()
     mqtt_monitors_thread = Thread(target=mqtt_monitors_loop)
     mqtt_monitors_thread.start()
+    mqtt_lights_thread = Thread(target=mqtt_lights_loop)
+    mqtt_lights_thread.start()
     # Telegram thread must be last
     telegram_thread = Thread(target=application.run_polling(allowed_updates=Update.ALL_TYPES))
     telegram_thread.start()

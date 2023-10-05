@@ -19,6 +19,7 @@ vhf_rig_mode = "FT8"
 vhf_sdr_state = "n/a"
 uhf_sdr_state = "n/a"
 monitors_state = "n/a"
+lights_state = "n/a"
 
 vhf_rot_az = 0
 vhf_rot_el = 0

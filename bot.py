@@ -1,4 +1,3 @@
-from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import (
     filters,
@@ -14,8 +13,6 @@ from functions.vhf_uhf.switch.uhf.uhf_switch_telegram import *
 from functions.camera.camera_telegram import *
 from functions.lights.lights_telegram import *
 from functions.monitors.monitors_telegram import *
-
-load_dotenv()
 
 application.add_handler(CommandHandler("start", start))
 application.add_handler(CommandHandler("roof_camera", roof_camera))

@@ -1,6 +1,9 @@
 from settings import *
 import os
 from telegram.ext import ApplicationBuilder
+from dotenv import load_dotenv
+
+load_dotenv()
 
 bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
 application = ApplicationBuilder().token(bot_token).build()

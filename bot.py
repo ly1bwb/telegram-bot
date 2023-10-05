@@ -94,7 +94,7 @@ def read_mqtt_vhf_sdr_state(client, userdata, message):
     global vhf_sdr_state
     payload_value = str(message.payload.decode("utf-8"))
     if message.topic == "stat/tasmota_E65E89/POWER1":
-        if sdr_state != payload_value:
+        if vhf_sdr_state != payload_value:
             if payload_value == "ON":
                 msg = "Įjungtas"
             else:
@@ -537,7 +537,7 @@ async def read_vhf_sdr_switch_state(update: Update, context: ContextTypes.DEFAUL
                     + new_state
                     + "</b>"
                 )
-                change_sdr_state(new_state)
+                change_vhf_sdr_state(new_state)
             else:
                 msg = (
                     "MFJ VHF Switch jau yra <b>"

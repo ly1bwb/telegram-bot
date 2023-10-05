@@ -30,7 +30,7 @@ from functions.geo import *
 
 load_dotenv()
 
-VERSION = "1.4.0"
+VERSION = "1.4.1"
 
 bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
 application = ApplicationBuilder().token(bot_token).build()
@@ -785,7 +785,7 @@ monitors_state_handler = ConversationHandler(
 )
 
 lights_handler = ConversationHandler(
-    entry_points=[CommandHandler("ligths", set_lights_state)],
+    entry_points=[CommandHandler("lights", set_lights_state)],
     states={LIGHTS: [CallbackQueryHandler(read_lights_state)]},
     fallbacks=[CommandHandler("lights", set_lights_state)],
 )

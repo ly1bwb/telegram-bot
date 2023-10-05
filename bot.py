@@ -30,7 +30,7 @@ from functions.geo import *
 
 load_dotenv()
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 
 bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
 application = ApplicationBuilder().token(bot_token).build()

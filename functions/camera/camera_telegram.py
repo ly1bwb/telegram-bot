@@ -17,13 +17,11 @@ class webcam_parser(HTMLParser):
             self.roof_camera_img = roof_camera_host + attrs[0][1]
             logging.info("Found IMG: " + self.roof_camera_img)
 
-
 async def lower_camera(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log_func("lower_camera()", update)
     web_file = urllib.request.urlopen(lower_camera_url)
     await context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
     return ConversationHandler.END
-
 
 async def rig_camera(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log_func("rig_camera()", update)
@@ -46,7 +44,6 @@ async def main_camera(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     await context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
     return ConversationHandler.END
 
-
 async def roof_camera(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log_func("roof_camera()", update)
     await context.bot.send_chat_action(
@@ -58,4 +55,3 @@ async def roof_camera(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     parser.feed(web_cam_html.decode("utf-8"))
     web_file = urllib.request.urlopen(parser.roof_camera_img)
     await context.bot.send_photo(chat_id=update.effective_chat.id, photo=web_file.read())
-

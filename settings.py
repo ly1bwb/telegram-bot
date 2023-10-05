@@ -1,3 +1,4 @@
+VERSION = "1.4.1"
 
 start_text = "Labas - aš esu LY1BWB stoties botas."
 
@@ -12,17 +13,6 @@ main_camera_url = (
 )
 
 home_qth = "KO24PR15"
-
-vhf_rig_freq = "000000000"
-vhf_rig_mode = "FT8"
-
-vhf_sdr_state = "n/a"
-uhf_sdr_state = "n/a"
-monitors_state = "n/a"
-lights_state = "n/a"
-
-vhf_rot_az = 0
-vhf_rot_el = 0
 
 valid_users = {
     "LY2EN",
@@ -41,5 +31,7 @@ mqtt_host = "mqtt.vurk"
 
 mqtt_vhf_rot_path = "VURK/rotator/vhf"
 mqtt_radio_path = "VURK/radio/IC9700"
-mqtt_vhf_sdr_path = "cmnd/tasmota_E65E89"
-mqtt_monitor_path = "cmnd/tasmota_050E88"
+mqtt_vhf_sdr_path = "tasmota_E65E89"
+mqtt_uhf_sdr_path = "DUMMY"
+mqtt_monitor_path = "tasmota_050E88"
+mqtt_lights_path = "tasmota_C7DD34"

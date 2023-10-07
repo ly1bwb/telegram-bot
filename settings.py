@@ -6,7 +6,7 @@ roof_camera_host = "http://192.168.42.177/cgi-bin/hi3510/"
 roof_camera_url = roof_camera_host + "snap.cgi?&-getpic"
 
 lower_camera_url = "http://192.168.42.10/webcam/webcam3.jpg"
-rig_camera_url = "http://192.168.42.10/webcam/webcam1.jpg"
+rig_camera_url = "http://192.168.42.10:8080/?action=snapshot"
 window_camera_url = "http://192.168.42.129/snapshot.jpg?"
 main_camera_url = (
     "http://192.168.42.183/onvifsnapshot/media_service/snapshot?channel=1&subtype=0"

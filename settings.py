@@ -1,4 +1,4 @@
-VERSION = "1.5.0"
+VERSION = "1.6.0"
 
 start_text = "Labas - aš esu LY1BWB stoties botas."
 
@@ -30,7 +30,8 @@ valid_users = {
 mqtt_host = "mqtt.vurk"
 
 mqtt_vhf_rot_path = "VURK/rotator/vhf"
-mqtt_radio_path = "VURK/radio/IC9700"
+mqtt_hf_rot_path = "VURK/rotator/hf"
+mqtt_vhf_radio_path = "VURK/radio/IC9700"
 mqtt_vhf_sdr_path = "tasmota_E65E89"
 mqtt_uhf_sdr_path = "DUMMY"
 mqtt_monitor_path = "tasmota_050E88"

@@ -4,3 +4,5 @@ paho-mqtt
 maidenhead
 pyproj
 ephem
+setuptools<58.0.0
+pyQRZ

@@ -23,7 +23,7 @@ valid_users = {
     "LY1WS",
     "LY2DC",
     "LY1JA",
-    "LY4AU",
+    "keturiantanasursule",
     "volwerene"
 }
 

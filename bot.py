@@ -14,6 +14,7 @@ from functions.hf.rotator.hf_rotator_telegram import *
 from functions.camera.camera_telegram import *
 from functions.lights.lights_telegram import *
 from functions.monitors.monitors_telegram import *
+from functions.whois.whois_qrz_telegram import *
 
 application.add_handler(CommandHandler("start", start))
 application.add_handler(CommandHandler("roof_camera", roof_camera))
@@ -28,6 +29,7 @@ application.add_handler(CommandHandler("moon", get_moon_vhf_azel))
 application.add_handler(CommandHandler("moon_azel", set_moon_vhf_azel))
 application.add_handler(CommandHandler("sveiki", sveiki))
 application.add_handler(CommandHandler("status", get_status))
+application.add_handler(CommandHandler("whois", whois_qrz_query))
 application.add_handler(vhf_freq_handler)
 application.add_handler(vhf_az_handler)
 application.add_handler(vhf_el_handler)

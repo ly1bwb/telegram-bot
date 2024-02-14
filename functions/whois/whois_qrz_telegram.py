@@ -17,7 +17,7 @@ async def whois_qrz_query(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     username = update.message.from_user["username"]
 
     if check_permissions(username, update, context):
-        if len(context.args) > 0:
+        if len(context.args) == 1:
             callsign = context.args[0].upper()
 
             await context.bot.send_message(

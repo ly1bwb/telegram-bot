@@ -45,7 +45,7 @@ async def read_vhf_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     f1 = get_vhf_rig_mode()
     f2 = query.data
     if check_permissions(username, update, context):
-        change_mode(query.data)
+        change_vhf_mode(query.data)
         await query.edit_message_text(text=f"Keičiu režimą iš {f1} į {f2}")
     return ConversationHandler.END
 
@@ -54,7 +54,7 @@ async def set_vhf_mode(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Called set_vhf_mode() by {update.message.from_user['username']}")
     username = update.message.from_user["username"]
     if len(context.args) > 0 and check_permissions(username, update, context):
-        change_mode(context.args[-1])
+        change_vhf_mode(context.args[-1])
         f1 = get_vhf_rig_mode()
         f2 = context.args[-1]
         await context.bot.send_message(
@@ -79,7 +79,7 @@ async def set_vhf_mode(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text=f"Pasirinkite režimą (dabar {get_vhf_rig_mode()}):",
             reply_markup=reply_markup,
         )
-        return MODE
+        return VHF_MODE
 
 async def read_vhf_freq(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log.info(f"Called read_vhf_freq()")
@@ -89,7 +89,7 @@ async def read_vhf_freq(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     f1 = format_frequency(get_vhf_rig_freq())
     f2 = format_frequency(query.data)
     if check_permissions(username, update, context):
-        change_freq(query.data)
+        change_vhf_freq(query.data)
         await query.edit_message_text(text=f"Keičiu dažnį iš {f1} į {f2}")
     return ConversationHandler.END
 
@@ -98,7 +98,7 @@ async def set_vhf_freq(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Called set_vhf_freq() by {update.message.from_user['username']}")
     username = update.message.from_user["username"]
     if len(context.args) > 0 and check_permissions(username, update, context):
-        change_freq(context.args[-1])
+        change_vhf_freq(context.args[-1])
         f1 = format_frequency(get_vhf_rig_freq())
         f2 = format_frequency(context.args[-1])
         await context.bot.send_message(
@@ -129,16 +129,16 @@ async def set_vhf_freq(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text="Pasirinkite arba įveskite dažnį:",
             reply_markup=reply_markup,
         )
-        return FREQ
+        return VHF_FREQ
 
 vhf_freq_handler = ConversationHandler(
     entry_points=[CommandHandler("set_vhf_freq", set_vhf_freq),],
-    states={FREQ: [CallbackQueryHandler(read_vhf_freq)],},
+    states={VHF_FREQ: [CallbackQueryHandler(read_vhf_freq)],},
     fallbacks=[CommandHandler("set_vhf_freq", set_vhf_freq)],
 )
 
 vhf_mode_handler = ConversationHandler(
     entry_points=[CommandHandler("set_vhf_mode", set_vhf_mode)],
-    states={MODE: [CallbackQueryHandler(read_vhf_mode)]},
+    states={VHF_MODE: [CallbackQueryHandler(read_vhf_mode)]},
     fallbacks=[CommandHandler("set_vhf_mode", set_vhf_mode)],
 )

@@ -4,20 +4,20 @@ from common.mqtt import *
 vhf_rot_az = 0
 vhf_rot_el = 0
 
-def mqtt_rotator_loop():
-    mqtt_loop(mqtt_vhf_rot_path + "/#", read_mqtt_rotator_azel)
+def mqtt_vhf_rotator_loop():
+    mqtt_loop(mqtt_vhf_rot_path + "/#", read_mqtt_vhf_rotator_azel)
 
-def change_az(degrees):
+def change_vhf_az(degrees):
     mqtt_publish(mqtt_vhf_rot_path + "/set/azimuth", degrees)
     return
 
-def change_el(degrees):
+def change_vhf_el(degrees):
     if int(degrees) >= 0 and int(degrees) < 360:
         mqtt_publish(mqtt_vhf_rot_path + "/set/elevation", degrees)
-    log.info("change_el({})".format(degrees))
+    log.info("change_vhf_el({})".format(degrees))
     return
 
-def read_mqtt_rotator_azel(client, userdata, message):
+def read_mqtt_vhf_rotator_azel(client, userdata, message):
     global vhf_rot_az
     global vhf_rot_el
     payload_value = str(message.payload.decode("utf-8"))

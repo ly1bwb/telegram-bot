@@ -20,7 +20,7 @@ async def read_vhf_az(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     await query.answer()
     username = query.from_user["username"]
     if check_permissions(username, update, context):
-        change_az(query.data)
+        change_vhf_az(query.data)
         await query.edit_message_text(
             text=f"Suku VHF antenas iš {get_vhf_rot_az()}º į {query.data}º"
         )
@@ -30,7 +30,7 @@ async def set_vhf_az(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log_func("set_vhf_az()", update)
     username = update.message.from_user["username"]
     if len(context.args) > 0 and check_permissions(username, update, context):
-        change_az(context.args[-1])
+        change_vhf_az(context.args[-1])
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=f"Suku VHF antenas iš {get_vhf_rot_az()}º į {context.args[-1]}º",
@@ -62,7 +62,7 @@ async def set_vhf_az(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text=f"🧭 Pasirinkite arba įveskite azimutą (dabar: {get_vhf_rot_az()}º):",
             reply_markup=reply_markup,
         )
-        return AZ
+        return VHF_AZ
 
 async def read_vhf_el(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
@@ -73,7 +73,7 @@ async def read_vhf_el(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
             msg = "Leidžiu"
         else:
             msg = "Keliu"
-        change_el(query.data)
+        change_vhf_el(query.data)
         await query.edit_message_text(
             text=f"{msg} VHF antenas iš {get_vhf_rot_el()}º į {query.data}º"
         )
@@ -84,7 +84,7 @@ async def set_vhf_el(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log_func("set_vhf_el()", update)
     username = update.message.from_user["username"]
     if len(context.args) > 0 and check_permissions(username, update, context):
-        change_el(context.args[-1])
+        change_vhf_el(context.args[-1])
         if get_vhf_rot_el() > context.args[-1]:
             msg = "Leidžiu"
         else:
@@ -108,7 +108,7 @@ async def set_vhf_el(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text=f"🔭 Pasirinkite arba įveskite elevaciją (dabar: {get_vhf_rot_el()}º):",
             reply_markup=reply_markup,
         )
-        return EL
+        return VHF_EL
 
 async def get_moon_vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log_func("get_moon_vhf_azel()", update)
@@ -125,8 +125,8 @@ async def set_moon_vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     if check_permissions(username, update, context):
         m_az, m_el = get_moon_azel(home_qth)
         if m_el >= 0:
-            change_az(m_az)
-            change_el(m_el)
+            change_vhf_az(m_az)
+            change_vhf_el(m_el)
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text=f"Suku į Mėnulį 🌕 iš {get_vhf_rot_az()}º, {get_vhf_rot_el()}º į {m_az}º, {m_el}º",
@@ -140,12 +140,12 @@ async def set_moon_vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 vhf_az_handler = ConversationHandler(
     entry_points=[CommandHandler("set_vhf_az", set_vhf_az)],
-    states={AZ: [CallbackQueryHandler(read_vhf_az)]},
+    states={VHF_AZ: [CallbackQueryHandler(read_vhf_az)]},
     fallbacks=[CommandHandler("set_vhf_az", set_vhf_az)],
 )
 
 vhf_el_handler = ConversationHandler(
     entry_points=[CommandHandler("set_vhf_el", set_vhf_el)],
-    states={EL: [CallbackQueryHandler(read_vhf_el)]},
+    states={VHF_EL: [CallbackQueryHandler(read_vhf_el)]},
     fallbacks=[CommandHandler("set_vhf_el", set_vhf_el)],
 )

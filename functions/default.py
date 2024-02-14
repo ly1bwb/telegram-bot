@@ -5,7 +5,7 @@ from telegram.ext import ContextTypes, ConversationHandler
 from common.telegram import *
 from settings import *
 
-CAM, FREQ, AZ, EL, MODE, VHF_SDR_STAT, UHF_SDR_STAT, MONITORS, LIGHTS = range(9)
+CAM, VHF_FREQ, VHF_AZ, VHF_EL, HF_AZ, VHF_MODE, VHF_SDR_STAT, UHF_SDR_STAT, MONITORS, LIGHTS = range(10)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await context.bot.send_message(chat_id=update.effective_chat.id, text=start_text)

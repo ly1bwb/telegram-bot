@@ -10,6 +10,7 @@ from functions.vhf_uhf.radio.vhf_uhf_radio_telegram import *
 from functions.vhf_uhf.rotator.vhf_uhf_rotator_telegram import *
 from functions.vhf_uhf.switch.vhf.vhf_switch_telegram import *
 from functions.vhf_uhf.switch.uhf.uhf_switch_telegram import *
+from functions.hf.rotator.hf_rotator_telegram import *
 from functions.camera.camera_telegram import *
 from functions.lights.lights_telegram import *
 from functions.monitors.monitors_telegram import *
@@ -23,6 +24,7 @@ application.add_handler(CommandHandler("window_camera", window_camera))
 application.add_handler(CommandHandler("main_camera", main_camera))
 application.add_handler(CommandHandler("vhf_freq", vhf_freq))
 application.add_handler(CommandHandler("vhf_azel", vhf_azel))
+application.add_handler(CommandHandler("hf_az", hf_az))
 application.add_handler(CommandHandler("moon", get_moon_vhf_azel))
 application.add_handler(CommandHandler("moon_azel", set_moon_vhf_azel))
 application.add_handler(CommandHandler("sveiki", sveiki))
@@ -34,6 +36,7 @@ application.add_handler(vhf_el_handler)
 application.add_handler(vhf_mode_handler)
 application.add_handler(vhf_sdr_state_handler)
 # application.add_handler(uhf_sdr_state_handler)
+application.add_handler(hf_az_handler)
 application.add_handler(monitors_state_handler)
 application.add_handler(lights_handler)
 application.add_handler(
@@ -46,11 +49,14 @@ application.add_handler(
 )
 
 if __name__ == "__main__":
-    mqtt_rig_thread = Thread(target=mqtt_radio_loop)
+    mqtt_rig_thread = Thread(target=mqtt_vhf_radio_loop)
     mqtt_rig_thread.start()
 
-    mqtt_rot_thread = Thread(target=mqtt_rotator_loop)
-    mqtt_rot_thread.start()
+    mqtt_vhf_rot_thread = Thread(target=mqtt_vhf_rotator_loop)
+    mqtt_vhf_rot_thread.start()
+
+    mqtt_hf_rot_thread = Thread(target=mqtt_hf_rotator_loop)
+    mqtt_hf_rot_thread.start()
 
     mqtt_vhf_sdr_thread = Thread(target=mqtt_vhf_sdr_loop)
     mqtt_vhf_sdr_thread.start()

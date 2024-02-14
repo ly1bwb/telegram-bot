@@ -7,7 +7,7 @@ def mqtt_hf_rotator_loop():
     mqtt_loop(mqtt_hf_rot_path + "/#", read_mqtt_hf_rotator_az)
 
 def change_hf_az(degrees):
-    mqtt_publish(mqtt_vhf_rot_path + "/set/azimuth", degrees)
+    mqtt_publish(mqtt_hf_rot_path + "/set/azimuth", degrees)
     return
 
 def read_mqtt_hf_rotator_az(client, userdata, message):

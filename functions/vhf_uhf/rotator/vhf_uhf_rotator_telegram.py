@@ -10,6 +10,7 @@ async def vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     el = get_vhf_rot_el()
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
+        message_thread_id=update.effective_message.message_thread_id,
         text=f"VHF antenų azimutas: {az}º, elevacija: {el}º",
         parse_mode=ParseMode.HTML,
     )
@@ -33,6 +34,7 @@ async def set_vhf_az(update: Update, context: ContextTypes.DEFAULT_TYPE):
         change_vhf_az(context.args[-1])
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
+            message_thread_id=update.effective_message.message_thread_id,
             text=f"Suku VHF antenas iš {get_vhf_rot_az()}º į {context.args[-1]}º",
         )
     else:
@@ -59,6 +61,7 @@ async def set_vhf_az(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(options)
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
+            message_thread_id=update.effective_message.message_thread_id,
             text=f"🧭 Pasirinkite arba įveskite azimutą (dabar: {get_vhf_rot_az()}º):",
             reply_markup=reply_markup,
         )
@@ -91,6 +94,7 @@ async def set_vhf_el(update: Update, context: ContextTypes.DEFAULT_TYPE):
             msg = "Keliu"
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
+            message_thread_id=update.effective_message.message_thread_id,
             text=f"🔭 {msg} VHF antenas iš {get_vhf_rot_el()}º į {context.args[-1]}º",
         )
     else:
@@ -105,6 +109,7 @@ async def set_vhf_el(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(options)
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
+            message_thread_id=update.effective_message.message_thread_id,
             text=f"🔭 Pasirinkite arba įveskite elevaciją (dabar: {get_vhf_rot_el()}º):",
             reply_markup=reply_markup,
         )
@@ -115,6 +120,7 @@ async def get_moon_vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     m_az, m_el = get_moon_azel(home_qth)
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
+        message_thread_id=update.effective_message.message_thread_id,
         text=f"Mėnulis 🌕 dabar yra {m_az}º azimute, {m_el}º elevacijoje",
     )
     return ConversationHandler.END
@@ -129,11 +135,13 @@ async def set_moon_vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             change_vhf_el(m_el)
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
+                message_thread_id=update.effective_message.message_thread_id,
                 text=f"Suku į Mėnulį 🌕 iš {get_vhf_rot_az()}º, {get_vhf_rot_el()}º į {m_az}º, {m_el}º",
             )
         else:
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
+                message_thread_id=update.effective_message.message_thread_id,
                 text=f"Mėnulis 🌕 dabar po horizontu {m_el}º",
             )
     return ConversationHandler.END

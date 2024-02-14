@@ -9,6 +9,7 @@ async def hf_az(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     az = get_hf_rot_az()
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
+        message_thread_id=update.effective_message.message_thread_id,
         text=f"HF antenų azimutas: {az}º",
         parse_mode=ParseMode.HTML,
     )
@@ -32,6 +33,7 @@ async def set_hf_az(update: Update, context: ContextTypes.DEFAULT_TYPE):
         change_hf_az(context.args[-1])
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
+            message_thread_id=update.effective_message.message_thread_id,
             text=f"Suku HF antenas iš {get_hf_rot_az()}º į {context.args[-1]}º",
         )
     else:
@@ -58,6 +60,7 @@ async def set_hf_az(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(options)
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
+            message_thread_id=update.effective_message.message_thread_id,
             text=f"🧭 Pasirinkite arba įveskite azimutą (dabar: {get_hf_rot_az()}º):",
             reply_markup=reply_markup,
         )

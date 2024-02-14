@@ -38,9 +38,10 @@ async def calculate_azimuth_by_loc(update: Update, context: ContextTypes.DEFAULT
     dist = round(dist / 1000)
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
+        message_thread_id=update.effective_message.message_thread_id,
         text=f"Azimutas į {loc} yra {deg}° (atstumas: {dist} km)",
     )
     await context.bot.send_message(
-        chat_id=update.effective_chat.id, text=f"/set_vhf_az {deg}"
+        chat_id=update.effective_chat.id, message_thread_id=update.effective_message.message_thread_id, text=f"/set_vhf_az {deg}"
     )
     return ConversationHandler.END

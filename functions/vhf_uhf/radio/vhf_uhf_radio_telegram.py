@@ -33,7 +33,7 @@ async def vhf_freq(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         + "'>Klausyti gyvai</a>"
     )
     await context.bot.send_message(
-        chat_id=update.effective_chat.id, text=msg, parse_mode=ParseMode.HTML
+        chat_id=update.effective_chat.id, message_thread_id=update.effective_message.message_thread_id, text=msg, parse_mode=ParseMode.HTML
     )
     return ConversationHandler.END
 
@@ -58,7 +58,7 @@ async def set_vhf_mode(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f1 = get_vhf_rig_mode()
         f2 = context.args[-1]
         await context.bot.send_message(
-            chat_id=update.effective_chat.id, text=f"Keičiu režimą iš {f1} į {f2}"
+            chat_id=update.effective_chat.id, message_thread_id=update.effective_message.message_thread_id, text=f"Keičiu režimą iš {f1} į {f2}"
         )
     else:
         options = [
@@ -76,6 +76,7 @@ async def set_vhf_mode(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(options)
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
+            message_thread_id=update.effective_message.message_thread_id,
             text=f"Pasirinkite režimą (dabar {get_vhf_rig_mode()}):",
             reply_markup=reply_markup,
         )
@@ -102,7 +103,7 @@ async def set_vhf_freq(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f1 = format_frequency(get_vhf_rig_freq())
         f2 = format_frequency(context.args[-1])
         await context.bot.send_message(
-            chat_id=update.effective_chat.id, text=f"Keičiu dažnį iš {f1} į {f2}"
+            chat_id=update.effective_chat.id, message_thread_id=update.effective_message.message_thread_id, text=f"Keičiu dažnį iš {f1} į {f2}"
         )
     else:
         options = [
@@ -126,6 +127,7 @@ async def set_vhf_freq(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(options)
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
+            message_thread_id=update.effective_message.message_thread_id,
             text="Pasirinkite arba įveskite dažnį:",
             reply_markup=reply_markup,
         )

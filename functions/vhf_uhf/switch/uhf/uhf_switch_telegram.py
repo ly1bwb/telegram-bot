@@ -28,11 +28,11 @@ async def set_uhf_sdr_switch_state(update: Update, context: ContextTypes.DEFAULT
                     + "</b>"
                 )
             await context.bot.send_message(
-                chat_id=update.effective_chat.id, text=msg, parse_mode=ParseMode.HTML
+                chat_id=update.effective_chat.id, message_thread_id=update.effective_message.message_thread_id, text=msg, parse_mode=ParseMode.HTML
             )
         else:
             await context.bot.send_message(
-                chat_id=update.effective_chat.id, text=f"Neteisingas parametras"
+                chat_id=update.effective_chat.id, message_thread_id=update.effective_message.message_thread_id, text=f"Neteisingas parametras"
             )
     else:
         options = [
@@ -44,6 +44,7 @@ async def set_uhf_sdr_switch_state(update: Update, context: ContextTypes.DEFAULT
         reply_markup = InlineKeyboardMarkup(options)
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
+            message_thread_id=update.effective_message.message_thread_id,
             text=f"Dabar MFJ UHF Switch yra <b>{get_uhf_sdr_state()}</b>\nPasirinkite arba įveskite naują MFJ Switch būseną:",
             reply_markup=reply_markup,
             parse_mode=ParseMode.HTML,
@@ -79,7 +80,7 @@ async def read_uhf_sdr_switch_state(update: Update, context: ContextTypes.DEFAUL
             await query.edit_message_text(text=msg, parse_mode=ParseMode.HTML)
         else:
             await context.bot.send_message(
-                chat_id=update.effective_chat.id, text=f"Neteisingas parametras"
+                chat_id=update.effective_chat.id, message_thread_id=update.effective_message.message_thread_id, text=f"Neteisingas parametras"
             )
     return ConversationHandler.END
 

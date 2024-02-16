@@ -15,6 +15,7 @@ def check_permissions(username, update, context):
     else:
         context.bot.send_message(
             chat_id=update.effective_chat.id,
+            message_thread_id=update.effective_message.message_thread_id,
             text="Neturite tokių teisių.",
         )
         return False
@@ -26,5 +27,6 @@ async def send_mqtt_state_to_telegram(text, chatid):
     # alternative method, maybe simpler
     # await telegram.Bot(bot_token).send_message(
     #     chat_id=chatid,
+    #     message_thread_id=message_thread_id,
     #     text=text,
     # )

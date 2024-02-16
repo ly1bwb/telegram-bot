@@ -22,6 +22,7 @@ async def whois_qrz_query(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
+                message_thread_id=update.effective_message.message_thread_id,
                 text=f"Ieškoma informacija apie {callsign}...",
             )
 
@@ -38,12 +39,14 @@ async def whois_qrz_query(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
+                message_thread_id=update.effective_message.message_thread_id,
                 text=full_answ,
             )
 
         else:
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
+                message_thread_id=update.effective_message.message_thread_id,
                 text=f"whois <callsign>",
             )
     return ConversationHandler.END

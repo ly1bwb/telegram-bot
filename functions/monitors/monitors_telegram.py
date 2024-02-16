@@ -29,11 +29,11 @@ async def set_monitors_state(update: Update, context: ContextTypes.DEFAULT_TYPE)
                     f"Monitoriai jau yra {msg_action}"
                 )
             await context.bot.send_message(
-                chat_id=update.effective_chat.id, text=msg, parse_mode=ParseMode.HTML
+                chat_id=update.effective_chat.id, message_thread_id=update.effective_message.message_thread_id, text=msg, parse_mode=ParseMode.HTML
             )
         else:
             await context.bot.send_message(
-                chat_id=update.effective_chat.id, text=f"Neteisingas parametras"
+                chat_id=update.effective_chat.id, message_thread_id=update.effective_message.message_thread_id, text=f"Neteisingas parametras"
             )
     else:
         options = [
@@ -53,6 +53,7 @@ async def set_monitors_state(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
+            message_thread_id=update.effective_message.message_thread_id,
             text=f"Dabar monitoriai yra <b>{msg_action}</b>\nPasirinkite arba įveskite naują monitorių būseną:",
             reply_markup=reply_markup,
             parse_mode=ParseMode.HTML,
@@ -89,7 +90,7 @@ async def read_monitors_state(update: Update, context: ContextTypes.DEFAULT_TYPE
             await query.edit_message_text(text=msg, parse_mode=ParseMode.HTML)
         else:
             await context.bot.send_message(
-                chat_id=update.effective_chat.id, text=f"Neteisingas parametras"
+                chat_id=update.effective_chat.id, message_thread_id=update.effective_message.message_thread_id, text=f"Neteisingas parametras"
             )
     return ConversationHandler.END
 

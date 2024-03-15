@@ -4,9 +4,13 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import CallbackQueryHandler, CommandHandler, ConversationHandler
 from telegram.constants import ParseMode
 
-async def set_vhf_sdr_switch_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+
+async def set_vhf_sdr_switch_state(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> int:
     log.info(
-        f"Called set_vhf_sdr_switch_state() by {update.message.from_user['username']}")
+        f"Called set_vhf_sdr_switch_state() by {update.message.from_user['username']}"
+    )
     username = update.message.from_user["username"]
     if len(context.args) > 0 and check_permissions(username, update, context):
         new_state = context.args[-1].upper()
@@ -22,24 +26,25 @@ async def set_vhf_sdr_switch_state(update: Update, context: ContextTypes.DEFAULT
                 )
                 change_vhf_sdr_state(new_state)
             else:
-                msg = (
-                    "VHF MFJ Switch jau yra <b>"
-                    + new_state
-                    + "</b>"
-                )
+                msg = "VHF MFJ Switch jau yra <b>" + new_state + "</b>"
             await context.bot.send_message(
-                chat_id=update.effective_chat.id, message_thread_id=update.effective_message.message_thread_id, text=msg, parse_mode=ParseMode.HTML
+                chat_id=update.effective_chat.id,
+                message_thread_id=update.effective_message.message_thread_id,
+                text=msg,
+                parse_mode=ParseMode.HTML,
             )
         else:
             await context.bot.send_message(
-                chat_id=update.effective_chat.id, message_thread_id=update.effective_message.message_thread_id, text=f"Neteisingas parametras"
+                chat_id=update.effective_chat.id,
+                message_thread_id=update.effective_message.message_thread_id,
+                text=f"Neteisingas parametras",
             )
     else:
         options = [
             [
                 InlineKeyboardButton(text="ON", callback_data="on"),
                 InlineKeyboardButton(text="OFF", callback_data="off"),
-            ],
+            ]
         ]
         reply_markup = InlineKeyboardMarkup(options)
         await context.bot.send_message(
@@ -51,7 +56,10 @@ async def set_vhf_sdr_switch_state(update: Update, context: ContextTypes.DEFAULT
         )
     return VHF_SDR_STAT
 
-async def read_vhf_sdr_switch_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+
+async def read_vhf_sdr_switch_state(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> int:
     log.info(f"Called read_vhf_sdr_switch_state()")
     query = update.callback_query
     await query.answer()
@@ -72,17 +80,16 @@ async def read_vhf_sdr_switch_state(update: Update, context: ContextTypes.DEFAUL
                 )
                 change_vhf_sdr_state(new_state)
             else:
-                msg = (
-                    "MFJ VHF Switch jau yra <b>"
-                    + new_state
-                    + "</b>"
-                )
+                msg = "MFJ VHF Switch jau yra <b>" + new_state + "</b>"
             await query.edit_message_text(text=msg, parse_mode=ParseMode.HTML)
         else:
             await context.bot.send_message(
-                chat_id=update.effective_chat.id, message_thread_id=update.effective_message.message_thread_id, text=f"Neteisingas parametras"
+                chat_id=update.effective_chat.id,
+                message_thread_id=update.effective_message.message_thread_id,
+                text=f"Neteisingas parametras",
             )
     return ConversationHandler.END
+
 
 vhf_sdr_state_handler = ConversationHandler(
     entry_points=[CommandHandler("vhf_sdr", set_vhf_sdr_switch_state)],

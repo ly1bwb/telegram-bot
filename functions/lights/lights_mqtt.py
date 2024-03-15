@@ -2,6 +2,9 @@ import asyncio
 from functions.default import *
 from common.mqtt import *
 
+import urllib.request
+from settings import *
+
 lights_state = "n/a"
 
 
@@ -10,6 +13,8 @@ def mqtt_lights_loop():
 
 
 def change_lights_state(state):
+    web_file = urllib.request.urlopen(main_camera_url)
+    asyncio.run(send_photo_to_telegram(web_file.read()), default_chat_id)
     mqtt_publish("cmnd/" + mqtt_lights_path + "/POWER1", state)
     return
 

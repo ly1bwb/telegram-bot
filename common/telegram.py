@@ -26,6 +26,11 @@ async def send_mqtt_state_to_telegram(text, chatid):
     app = ApplicationBuilder().token(bot_token).build()
     await app.bot.send_message(chat_id=chatid, text=text)
 
+
+async def send_photo_to_telegram(photo, chatid):
+    app = ApplicationBuilder().token(bot_token).build()
+    await app.bot.send_photo(chat_id=chatid, photo=photo)
+
     # alternative method, maybe simpler
     # await telegram.Bot(bot_token).send_message(
     #     chat_id=chatid,

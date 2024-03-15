@@ -20,10 +20,8 @@ async def whois_qrz_query(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         if len(context.args) == 1:
             callsign = context.args[0].upper()
 
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                message_thread_id=update.effective_message.message_thread_id,
-                text=f"Ieškoma informacija apie {callsign}...",
+            await context.bot.send_chat_action(
+                chat_id=update.effective_chat.id, message_thread_id=update.effective_message.message_thread_id, action=ChatAction.TYPING
             )
 
             try:

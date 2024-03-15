@@ -1,9 +1,5 @@
 from telegram import Update
-from telegram.ext import (
-    filters,
-    CommandHandler,
-    MessageHandler,
-)
+from telegram.ext import filters, CommandHandler, MessageHandler
 from threading import Thread
 
 from functions.vhf_uhf.radio.vhf_uhf_radio_telegram import *
@@ -41,10 +37,7 @@ application.add_handler(monitors_state_handler)
 application.add_handler(lights_handler)
 application.add_handler(
     MessageHandler(
-        filters.Regex(
-            r"^\w{2}\d{2}\w{2}(\d\d){0,1}$",
-        ),
-        calculate_azimuth_by_loc,
+        filters.Regex(r"^\w{2}\d{2}\w{2}(\d\d){0,1}$"), calculate_azimuth_by_loc
     )
 )
 
@@ -71,6 +64,7 @@ if __name__ == "__main__":
     mqtt_lights_thread.start()
 
     # Telegram thread must be last
-    telegram_thread = Thread(target=application.run_polling(
-        allowed_updates=Update.ALL_TYPES))
+    telegram_thread = Thread(
+        target=application.run_polling(allowed_updates=Update.ALL_TYPES)
+    )
     telegram_thread.start()

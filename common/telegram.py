@@ -9,6 +9,7 @@ bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
 application = ApplicationBuilder().token(bot_token).build()
 default_chat_id = os.environ.get("TELEGRAM_CHAT_ID")
 
+
 def check_permissions(username, update, context):
     if username in valid_users:
         return True
@@ -19,6 +20,7 @@ def check_permissions(username, update, context):
             text="Neturite tokių teisių.",
         )
         return False
+
 
 async def send_mqtt_state_to_telegram(text, chatid):
     app = ApplicationBuilder().token(bot_token).build()

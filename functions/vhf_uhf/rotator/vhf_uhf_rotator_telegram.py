@@ -5,6 +5,7 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import CallbackQueryHandler, CommandHandler, ConversationHandler
 from telegram.constants import ParseMode
 
+
 async def vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     az = get_vhf_rot_az()
     el = get_vhf_rot_el()
@@ -16,6 +17,7 @@ async def vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     )
     return ConversationHandler.END
 
+
 async def read_vhf_az(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
@@ -26,6 +28,7 @@ async def read_vhf_az(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
             text=f"Suku VHF antenas iš {get_vhf_rot_az()}º į {query.data}º"
         )
     return ConversationHandler.END
+
 
 async def set_vhf_az(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log_func("set_vhf_az()", update)
@@ -66,6 +69,7 @@ async def set_vhf_az(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=reply_markup,
         )
         return VHF_AZ
+
 
 async def read_vhf_el(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
@@ -115,6 +119,7 @@ async def set_vhf_el(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return VHF_EL
 
+
 async def get_moon_vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log_func("get_moon_vhf_azel()", update)
     m_az, m_el = get_moon_azel(home_qth)
@@ -124,6 +129,7 @@ async def get_moon_vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         text=f"Mėnulis 🌕 dabar yra {m_az}º azimute, {m_el}º elevacijoje",
     )
     return ConversationHandler.END
+
 
 async def set_moon_vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log_func("set_moon_vhf_azel()", update)
@@ -145,6 +151,7 @@ async def set_moon_vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                 text=f"Mėnulis 🌕 dabar po horizontu {m_el}º",
             )
     return ConversationHandler.END
+
 
 vhf_az_handler = ConversationHandler(
     entry_points=[CommandHandler("set_vhf_az", set_vhf_az)],

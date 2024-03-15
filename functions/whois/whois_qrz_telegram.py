@@ -4,6 +4,7 @@ from telegram.ext import CallbackQueryHandler, CommandHandler, ConversationHandl
 from telegram.constants import ParseMode, ChatAction
 from qrz import QRZ
 
+
 def print_keys(key_names, query_result):
     info = ""
     for key_name in key_names:
@@ -11,6 +12,7 @@ def print_keys(key_names, query_result):
             info += query_result[key_name] + " "
     print(info)
     return info
+
 
 async def whois_qrz_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log_func("whois_qrz_query()", update)
@@ -21,15 +23,17 @@ async def whois_qrz_query(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             callsign = context.args[0].upper()
 
             await context.bot.send_chat_action(
-                chat_id=update.effective_chat.id, message_thread_id=update.effective_message.message_thread_id, action=ChatAction.TYPING
+                chat_id=update.effective_chat.id,
+                message_thread_id=update.effective_message.message_thread_id,
+                action=ChatAction.TYPING,
             )
 
             try:
                 qrz = QRZ()
                 result = qrz.callsign(callsign)
-                answ1 = print_keys(['fname', 'name'], result)
-                answ2 = print_keys(['addr2', 'state'], result)
-                answ3 = print_keys(['country'], result)
+                answ1 = print_keys(["fname", "name"], result)
+                answ2 = print_keys(["addr2", "state"], result)
+                answ3 = print_keys(["country"], result)
                 full_answ = f"{callsign}\n{answ1}\n{answ2}\n{answ3}"
             except Exception as e:
                 print(f"Error: {e}")

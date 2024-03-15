@@ -5,6 +5,7 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import CallbackQueryHandler, CommandHandler, ConversationHandler
 from telegram.constants import ParseMode
 
+
 async def hf_az(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     az = get_hf_rot_az()
     await context.bot.send_message(
@@ -14,6 +15,7 @@ async def hf_az(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         parse_mode=ParseMode.HTML,
     )
     return ConversationHandler.END
+
 
 async def read_hf_az(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
@@ -25,6 +27,7 @@ async def read_hf_az(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             text=f"Suku HF antenas iš {get_hf_rot_az()}º į {query.data}º"
         )
     return ConversationHandler.END
+
 
 async def set_hf_az(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log_func("set_hf_az()", update)
@@ -65,6 +68,7 @@ async def set_hf_az(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=reply_markup,
         )
         return HF_AZ
+
 
 hf_az_handler = ConversationHandler(
     entry_points=[CommandHandler("set_hf_az", set_hf_az)],

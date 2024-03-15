@@ -2,6 +2,7 @@ from settings import *
 from functions.default import *
 import paho.mqtt.client as mqtt
 
+
 def mqtt_publish(topic, message):
     mqtt_client = mqtt.Client()
     mqtt_client.connect(mqtt_host, 1883, 60)
@@ -11,6 +12,7 @@ def mqtt_publish(topic, message):
     mqtt_client.disconnect()
     log.info("Disconnected publisher from MQTT (this is OK)")
     return
+
 
 def mqtt_loop(topic, handler):
     mqtt_client = mqtt.Client()

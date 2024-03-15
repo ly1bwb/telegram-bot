@@ -42,6 +42,16 @@ Vaizdas pro langą vakarų kryptimi. Naudojama ESP32 kamera.
 
 Robotas pasuks antenas tam tikru azimutu, kurį nurodote arba kaip komandos parametrą, arba nenurodžius parametro, pasirinksite iš meniu, kurį botas pateiks.
 
+## Prisidėkite
+
+```
+git clone https://github.com/ly1bwb/telegram-bot.git
+cd telegram-bot
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
 ## Autoriai
 
 * Simonas LY2EN <ly2en@qrz.lt>

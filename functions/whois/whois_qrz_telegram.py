@@ -1,7 +1,7 @@
 from functions.default import *
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import CallbackQueryHandler, CommandHandler, ConversationHandler
-from telegram.constants import ParseMode
+from telegram.constants import ParseMode, ChatAction
 from qrz import QRZ
 
 def print_keys(key_names, query_result):

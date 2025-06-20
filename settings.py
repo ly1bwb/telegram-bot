@@ -1,4 +1,4 @@
-VERSION = "1.8.0"
+VERSION = "1.8.1"
 
 start_text = "Labas - aš esu LY1BWB stoties botas."
 
@@ -26,7 +26,8 @@ valid_users = {
     "keturiantanasursule",
     "volwerene",
     "patriotmef",
-    "LY6BM",   
+    "LY6BM",
+    "LY7GG"
 }
 
 mqtt_host = "mqtt.vurk"

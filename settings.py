@@ -25,7 +25,8 @@ valid_users = {
     "LY1JA",
     "keturiantanasursule",
     "volwerene",
-    "patriotmef"
+    "patriotmef",
+    "LY6BM",   
 }
 
 mqtt_host = "mqtt.vurk"

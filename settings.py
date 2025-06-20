@@ -25,7 +25,6 @@ valid_users = {
     "LY1JA",
     "keturiantanasursule",
     "volwerene",
-    "tarassevcenko",
     "patriotmef"
 }
 

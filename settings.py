@@ -1,4 +1,4 @@
-VERSION = "1.8.1"
+VERSION = "1.8.2"
 
 start_text = "Labas - aš esu LY1BWB stoties botas."
 
@@ -26,7 +26,6 @@ valid_users = {
     "keturiantanasursule",
     "volwerene",
     "patriotmef",
-    "LY6BM",
     "LY7GG"
 }
 

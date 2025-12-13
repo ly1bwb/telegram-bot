@@ -1,9 +1,9 @@
-python-telegram-bot
-python-dotenv
-paho-mqtt
-maidenhead
-pyproj
-ephem
-setuptools<58.0.0
-pyQRZ
+python-telegram-bot==20.5
+python-dotenv==1.0.0
+paho-mqtt==1.6.1
+maidenhead==1.7.0
+pyproj==3.6.0
+ephem==4.1.2
+setuptools==44.1.1
+pyQRZ==0.1.0
 black

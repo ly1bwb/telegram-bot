@@ -1,0 +1,12 @@
+version: '3' # Change to version 3
+services:
+  telegram-bot:
+    build: .
+    container_name: ly1bwb-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    network_mode: host

@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore", message=".*per_message.*")
+
 from telegram import Update
 from threading import Thread
 from telegram.ext import filters, CommandHandler, MessageHandler

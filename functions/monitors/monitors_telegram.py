@@ -103,4 +103,5 @@ monitors_state_handler = ConversationHandler(
     entry_points=[CommandHandler("monitors", set_monitors_state)],
     states={MONITORS: [CallbackQueryHandler(read_monitors_state)]},
     fallbacks=[CommandHandler("monitors", set_monitors_state)],
+    per_message=True,
 )

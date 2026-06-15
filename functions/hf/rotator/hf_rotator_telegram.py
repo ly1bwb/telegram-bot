@@ -74,4 +74,5 @@ hf_az_handler = ConversationHandler(
     entry_points=[CommandHandler("set_hf_az", set_hf_az)],
     states={HF_AZ: [CallbackQueryHandler(read_hf_az)]},
     fallbacks=[CommandHandler("set_hf_az", set_hf_az)],
+    per_message=True,
 )

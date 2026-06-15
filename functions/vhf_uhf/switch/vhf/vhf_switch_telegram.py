@@ -98,5 +98,4 @@ vhf_sdr_state_handler = ConversationHandler(
     entry_points=[CommandHandler("vhf_sdr", set_vhf_sdr_switch_state)],
     states={VHF_SDR_STAT: [CallbackQueryHandler(read_vhf_sdr_switch_state)]},
     fallbacks=[CommandHandler("vhf_sdr", set_vhf_sdr_switch_state)],
-    per_message=True,
 )

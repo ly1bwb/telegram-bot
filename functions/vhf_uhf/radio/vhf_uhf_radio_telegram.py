@@ -142,12 +142,10 @@ vhf_freq_handler = ConversationHandler(
     entry_points=[CommandHandler("set_vhf_freq", set_vhf_freq)],
     states={VHF_FREQ: [CallbackQueryHandler(read_vhf_freq)]},
     fallbacks=[CommandHandler("set_vhf_freq", set_vhf_freq)],
-    per_message=True,
 )
 
 vhf_mode_handler = ConversationHandler(
     entry_points=[CommandHandler("set_vhf_mode", set_vhf_mode)],
     states={VHF_MODE: [CallbackQueryHandler(read_vhf_mode)]},
     fallbacks=[CommandHandler("set_vhf_mode", set_vhf_mode)],
-    per_message=True,
 )

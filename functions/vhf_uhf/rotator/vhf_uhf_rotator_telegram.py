@@ -157,12 +157,10 @@ vhf_az_handler = ConversationHandler(
     entry_points=[CommandHandler("set_vhf_az", set_vhf_az)],
     states={VHF_AZ: [CallbackQueryHandler(read_vhf_az)]},
     fallbacks=[CommandHandler("set_vhf_az", set_vhf_az)],
-    per_message=True,
 )
 
 vhf_el_handler = ConversationHandler(
     entry_points=[CommandHandler("set_vhf_el", set_vhf_el)],
     states={VHF_EL: [CallbackQueryHandler(read_vhf_el)]},
     fallbacks=[CommandHandler("set_vhf_el", set_vhf_el)],
-    per_message=True,
 )

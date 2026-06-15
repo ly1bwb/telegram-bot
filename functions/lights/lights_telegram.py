@@ -101,5 +101,4 @@ lights_handler = ConversationHandler(
     entry_points=[CommandHandler("lights", set_lights_state)],
     states={LIGHTS: [CallbackQueryHandler(read_lights_state)]},
     fallbacks=[CommandHandler("lights", set_lights_state)],
-    per_message=True,
 )

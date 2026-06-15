@@ -98,4 +98,5 @@ uhf_sdr_state_handler = ConversationHandler(
     entry_points=[CommandHandler("uhf_sdr", set_uhf_sdr_switch_state)],
     states={UHF_SDR_STAT: [CallbackQueryHandler(read_uhf_sdr_switch_state)]},
     fallbacks=[CommandHandler("uhf_sdr", set_uhf_sdr_switch_state)],
+    per_message=True,
 )

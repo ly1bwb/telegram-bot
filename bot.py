@@ -1,7 +1,6 @@
 from telegram import Update
-from telegram.ext import filters, CommandHandler, MessageHandler
 from threading import Thread
-
+from telegram.ext import filters, CommandHandler, MessageHandler
 from functions.vhf_uhf.radio.vhf_uhf_radio_telegram import *
 from functions.vhf_uhf.rotator.vhf_uhf_rotator_telegram import *
 from functions.vhf_uhf.switch.vhf.vhf_switch_telegram import *
@@ -35,6 +34,7 @@ application.add_handler(vhf_sdr_state_handler)
 application.add_handler(hf_az_handler)
 application.add_handler(monitors_state_handler)
 application.add_handler(lights_handler)
+application.add_handler(geo_az_handler)
 application.add_handler(
     MessageHandler(
         filters.Regex(r"^\w{2}\d{2}\w{2}(\d\d){0,1}$"), calculate_azimuth_by_loc
@@ -42,29 +42,26 @@ application.add_handler(
 )
 
 if __name__ == "__main__":
-    mqtt_rig_thread = Thread(target=mqtt_vhf_radio_loop)
+    mqtt_rig_thread = Thread(target=mqtt_vhf_radio_loop, daemon=True)
     mqtt_rig_thread.start()
 
-    mqtt_vhf_rot_thread = Thread(target=mqtt_vhf_rotator_loop)
+    mqtt_vhf_rot_thread = Thread(target=mqtt_vhf_rotator_loop, daemon=True)
     mqtt_vhf_rot_thread.start()
 
-    mqtt_hf_rot_thread = Thread(target=mqtt_hf_rotator_loop)
+    mqtt_hf_rot_thread = Thread(target=mqtt_hf_rotator_loop, daemon=True)
     mqtt_hf_rot_thread.start()
 
-    mqtt_vhf_sdr_thread = Thread(target=mqtt_vhf_sdr_loop)
+    mqtt_vhf_sdr_thread = Thread(target=mqtt_vhf_sdr_loop, daemon=True)
     mqtt_vhf_sdr_thread.start()
 
-    # mqtt_uhf_sdr_thread = Thread(target=mqtt_uhf_sdr_loop)
+    # mqtt_uhf_sdr_thread = Thread(target=mqtt_uhf_sdr_loop, daemon=True)
     # mqtt_uhf_sdr_thread.start()
 
-    mqtt_monitors_thread = Thread(target=mqtt_monitors_loop)
+    mqtt_monitors_thread = Thread(target=mqtt_monitors_loop, daemon=True)
     mqtt_monitors_thread.start()
 
-    mqtt_lights_thread = Thread(target=mqtt_lights_loop)
+    mqtt_lights_thread = Thread(target=mqtt_lights_loop, daemon=True)
     mqtt_lights_thread.start()
 
     # Telegram thread must be last
-    telegram_thread = Thread(
-        target=application.run_polling(allowed_updates=Update.ALL_TYPES)
-    )
-    telegram_thread.start()
+    application.run_polling(allowed_updates=Update.ALL_TYPES)

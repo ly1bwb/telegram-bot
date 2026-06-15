@@ -12,14 +12,17 @@ async def set_uhf_sdr_switch_state(
         f"Called set_uhf_sdr_switch_state() by {update.message.from_user['username']}"
     )
     username = update.message.from_user["username"]
-    if len(context.args) > 0 and check_permissions(username, update, context):
+    if not await check_permissions(username, update, context):
+        return ConversationHandler.END
+    if len(context.args) > 0:
         new_state = context.args[-1].upper()
 
         if new_state == "ON" or new_state == "OFF":
-            if new_state != get_uhf_sdr_state():
+            old_state = get_uhf_sdr_state()
+            if new_state != old_state:
                 msg = (
-                    "Perjungiu VHF MFJ Switch state iš <b>"
-                    + get_uhf_sdr_state()
+                    "Perjungiu UHF MFJ Switch state iš <b>"
+                    + old_state
                     + "</b> į <b>"
                     + new_state
                     + "</b>"
@@ -65,7 +68,7 @@ async def read_uhf_sdr_switch_state(
     await query.answer()
     username = query.from_user["username"]
 
-    if check_permissions(username, update, context):
+    if await check_permissions(username, update, context):
         new_state = query.data.upper()
         old_state = get_uhf_sdr_state()
 
@@ -73,7 +76,7 @@ async def read_uhf_sdr_switch_state(
             if new_state != old_state:
                 msg = (
                     "Perjungiu MFJ UHF Switch state iš <b>"
-                    + get_uhf_sdr_state()
+                    + old_state
                     + "</b> į <b>"
                     + new_state
                     + "</b>"

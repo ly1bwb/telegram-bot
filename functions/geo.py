@@ -3,12 +3,14 @@ import pyproj
 import datetime
 from math import pi
 
-from telegram import Update
-from telegram.ext import ContextTypes, ConversationHandler
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram.ext import ContextTypes, ConversationHandler, CallbackQueryHandler
 
 import maidenhead as mh
 
 from settings import *
+from common.telegram import check_permissions
+from functions.vhf_uhf.rotator.vhf_uhf_rotator_mqtt import change_vhf_az
 
 
 def angle_between_loc(x1, y1, x2, y2):
@@ -37,19 +39,33 @@ def get_moon_azel(qth):
 async def calculate_azimuth_by_loc(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> int:
-    user_id = update.message.from_user["id"]
     loc = update.message.text
     deg, dist = angle_distance_qth(loc)
     deg = round(deg)
     dist = round(dist / 1000)
+    reply_markup = InlineKeyboardMarkup([[
+        InlineKeyboardButton(text=f"🧭 Sukti į {deg}°", callback_data=f"geo_az:{deg}")
+    ]])
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         message_thread_id=update.effective_message.message_thread_id,
         text=f"Azimutas į {loc} yra {deg}° (atstumas: {dist} km)",
-    )
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        message_thread_id=update.effective_message.message_thread_id,
-        text=f"/set_vhf_az {deg}",
+        reply_markup=reply_markup,
     )
     return ConversationHandler.END
+
+
+async def handle_geo_az_callback(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> int:
+    query = update.callback_query
+    await query.answer()
+    username = query.from_user["username"]
+    if await check_permissions(username, update, context):
+        deg = int(query.data.split(":")[1])
+        change_vhf_az(deg)
+        await query.edit_message_text(text=f"🧭 Suku VHF antenas į {deg}°")
+    return ConversationHandler.END
+
+
+geo_az_handler = CallbackQueryHandler(handle_geo_az_callback, pattern=r"^geo_az:")

@@ -8,7 +8,9 @@ from telegram.constants import ParseMode
 async def set_lights_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log.info(f"Called set_lights_state() by {update.message.from_user['username']}")
     username = update.message.from_user["username"]
-    if len(context.args) > 0 and check_permissions(username, update, context):
+    if not await check_permissions(username, update, context):
+        return ConversationHandler.END
+    if len(context.args) > 0:
         new_state = context.args[-1].upper()
 
         if new_state == "ON" or new_state == "OFF":
@@ -68,7 +70,7 @@ async def read_lights_state(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     await query.answer()
     username = query.from_user["username"]
 
-    if check_permissions(username, update, context):
+    if await check_permissions(username, update, context):
         new_state = query.data.upper()
         old_state = get_lights_state()
 

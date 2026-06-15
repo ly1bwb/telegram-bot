@@ -21,7 +21,7 @@ async def read_hf_az(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
     username = query.from_user["username"]
-    if check_permissions(username, update, context):
+    if await check_permissions(username, update, context):
         change_hf_az(query.data)
         await query.edit_message_text(
             text=f"Suku HF antenas iš {get_hf_rot_az()}º į {query.data}º"
@@ -32,7 +32,7 @@ async def read_hf_az(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def set_hf_az(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log_func("set_hf_az()", update)
     username = update.message.from_user["username"]
-    if len(context.args) > 0 and check_permissions(username, update, context):
+    if len(context.args) > 0 and await check_permissions(username, update, context):
         change_hf_az(context.args[-1])
         await context.bot.send_message(
             chat_id=update.effective_chat.id,

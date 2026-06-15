@@ -15,7 +15,7 @@ def change_vhf_az(degrees):
 
 
 def change_vhf_el(degrees):
-    if int(degrees) >= 0 and int(degrees) < 360:
+    if int(degrees) >= 0 and int(degrees) <= 180:
         mqtt_publish(mqtt_vhf_rot_path + "/set/elevation", degrees)
     log.info("change_vhf_el({})".format(degrees))
     return

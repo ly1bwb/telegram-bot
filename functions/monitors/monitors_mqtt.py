@@ -10,7 +10,7 @@ def mqtt_monitors_loop():
 
 
 def change_monitors_state(state):
-    mqtt_publish("cmnd/" + mqtt_monitor_path + "/POWER1", state)
+    mqtt_publish("cmnd/" + mqtt_monitor_path + "/POWER", state)
     return
 
 

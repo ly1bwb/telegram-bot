@@ -1,5 +1,6 @@
 from settings import *
 import os
+from telegram import Bot
 from telegram.ext import ApplicationBuilder
 from dotenv import load_dotenv
 
@@ -10,11 +11,11 @@ application = ApplicationBuilder().token(bot_token).build()
 default_chat_id = os.environ.get("TELEGRAM_CHAT_ID")
 
 
-def check_permissions(username, update, context):
+async def check_permissions(username, update, context):
     if username in valid_users:
         return True
     else:
-        context.bot.send_message(
+        await context.bot.send_message(
             chat_id=update.effective_chat.id,
             message_thread_id=update.effective_message.message_thread_id,
             text="Neturite tokių teisių.",
@@ -23,12 +24,5 @@ def check_permissions(username, update, context):
 
 
 async def send_mqtt_state_to_telegram(text, chatid):
-    app = ApplicationBuilder().token(bot_token).build()
-    await app.bot.send_message(chat_id=chatid, text=text)
-
-    # alternative method, maybe simpler
-    # await telegram.Bot(bot_token).send_message(
-    #     chat_id=chatid,
-    #     message_thread_id=message_thread_id,
-    #     text=text,
-    # )
+    async with Bot(bot_token) as bot:
+        await bot.send_message(chat_id=chatid, text=text)

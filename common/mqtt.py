@@ -16,6 +16,7 @@ def mqtt_publish(topic, message):
 
 def mqtt_loop(topic, handler):
     mqtt_client = mqtt.Client()
+    mqtt_client.reconnect_delay_set(min_delay=1, max_delay=30)
     mqtt_client.connect(mqtt_host, 1883, 60)
     log.info("Connected to MQTT")
     mqtt_client.on_message = handler

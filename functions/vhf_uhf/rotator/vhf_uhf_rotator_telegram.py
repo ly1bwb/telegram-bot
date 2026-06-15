@@ -22,7 +22,7 @@ async def read_vhf_az(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     query = update.callback_query
     await query.answer()
     username = query.from_user["username"]
-    if check_permissions(username, update, context):
+    if await check_permissions(username, update, context):
         change_vhf_az(query.data)
         await query.edit_message_text(
             text=f"Suku VHF antenas iš {get_vhf_rot_az()}º į {query.data}º"
@@ -33,7 +33,7 @@ async def read_vhf_az(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
 async def set_vhf_az(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log_func("set_vhf_az()", update)
     username = update.message.from_user["username"]
-    if len(context.args) > 0 and check_permissions(username, update, context):
+    if len(context.args) > 0 and await check_permissions(username, update, context):
         change_vhf_az(context.args[-1])
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -75,8 +75,8 @@ async def read_vhf_el(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     query = update.callback_query
     await query.answer()
     username = query.from_user["username"]
-    if check_permissions(username, update, context):
-        if get_vhf_rot_el() > query.data:
+    if await check_permissions(username, update, context):
+        if int(get_vhf_rot_el()) > int(query.data):
             msg = "Leidžiu"
         else:
             msg = "Keliu"
@@ -90,9 +90,9 @@ async def read_vhf_el(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
 async def set_vhf_el(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log_func("set_vhf_el()", update)
     username = update.message.from_user["username"]
-    if len(context.args) > 0 and check_permissions(username, update, context):
+    if len(context.args) > 0 and await check_permissions(username, update, context):
         change_vhf_el(context.args[-1])
-        if get_vhf_rot_el() > context.args[-1]:
+        if int(get_vhf_rot_el()) > int(context.args[-1]):
             msg = "Leidžiu"
         else:
             msg = "Keliu"
@@ -134,7 +134,7 @@ async def get_moon_vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 async def set_moon_vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log_func("set_moon_vhf_azel()", update)
     username = update.message.from_user["username"]
-    if check_permissions(username, update, context):
+    if await check_permissions(username, update, context):
         m_az, m_el = get_moon_azel(home_qth)
         if m_el >= 0:
             change_vhf_az(m_az)

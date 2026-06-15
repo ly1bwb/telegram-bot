@@ -49,7 +49,7 @@ async def read_vhf_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     username = query.from_user["username"]
     f1 = get_vhf_rig_mode()
     f2 = query.data
-    if check_permissions(username, update, context):
+    if await check_permissions(username, update, context):
         change_vhf_mode(query.data)
         await query.edit_message_text(text=f"Keičiu režimą iš {f1} į {f2}")
     return ConversationHandler.END
@@ -58,7 +58,7 @@ async def read_vhf_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 async def set_vhf_mode(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log.info(f"Called set_vhf_mode() by {update.message.from_user['username']}")
     username = update.message.from_user["username"]
-    if len(context.args) > 0 and check_permissions(username, update, context):
+    if len(context.args) > 0 and await check_permissions(username, update, context):
         change_vhf_mode(context.args[-1])
         f1 = get_vhf_rig_mode()
         f2 = context.args[-1]
@@ -97,7 +97,7 @@ async def read_vhf_freq(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     username = query.from_user["username"]
     f1 = format_frequency(get_vhf_rig_freq())
     f2 = format_frequency(query.data)
-    if check_permissions(username, update, context):
+    if await check_permissions(username, update, context):
         change_vhf_freq(query.data)
         await query.edit_message_text(text=f"Keičiu dažnį iš {f1} į {f2}")
     return ConversationHandler.END
@@ -106,7 +106,7 @@ async def read_vhf_freq(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 async def set_vhf_freq(update: Update, context: ContextTypes.DEFAULT_TYPE):
     log.info(f"Called set_vhf_freq() by {update.message.from_user['username']}")
     username = update.message.from_user["username"]
-    if len(context.args) > 0 and check_permissions(username, update, context):
+    if len(context.args) > 0 and await check_permissions(username, update, context):
         change_vhf_freq(context.args[-1])
         f1 = format_frequency(get_vhf_rig_freq())
         f2 = format_frequency(context.args[-1])

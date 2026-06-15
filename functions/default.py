@@ -1,4 +1,5 @@
 import logging
+import os
 import socket
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler
@@ -46,12 +47,11 @@ async def sveiki(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def get_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log_func("get_status()", update)
     username = update.message.from_user["username"]
-    if check_permissions(username, update, context):
-        hostname = socket.gethostname()
-        ip_address = socket.gethostbyname(hostname)
+    if await check_permissions(username, update, context):
+        hostname = os.environ.get("HOSTNAME", socket.gethostname())
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             message_thread_id=update.effective_message.message_thread_id,
-            text=f"Version: {VERSION}\nHostname: {hostname}\nIP: {ip_address}",
+            text=f"Version: {VERSION}\nHostname: {hostname}",
         )
     return ConversationHandler.END

@@ -1,7 +1,7 @@
 import warnings
 warnings.filterwarnings("ignore", message=".*per_message.*")
 
-from telegram import Update
+from telegram import Update, BotCommand
 from threading import Thread
 from telegram.ext import filters, CommandHandler, MessageHandler
 from functions.vhf_uhf.radio.vhf_uhf_radio_telegram import *
@@ -46,6 +46,41 @@ application.add_handler(
         filters.Regex(r"^\w{2}\d{2}\w{2}(\d\d){0,1}$"), calculate_azimuth_by_loc
     )
 )
+
+# Command menu shown in Telegram clients, published on startup.
+bot_commands = [
+    BotCommand("lower_camera", "Žemesnė stogo kamera"),
+    BotCommand("roof_camera", "Aukštesnė stogo kamera"),
+    BotCommand("main_camera", "Patalpos kamera"),
+    BotCommand("window_camera", "Vaizdas pro langą"),
+    BotCommand("rig_camera", "VHF kamera"),
+    BotCommand("vhf_freq", "VHF stoties dažnis"),
+    BotCommand("vhf_azel", "VHF antenų kryptis"),
+    BotCommand("hf_az", "HF antenų kryptis"),
+    BotCommand("getant", "Pasirinkta HF antena"),
+    BotCommand("moon", "Mėnulio azimutas ir elevacija"),
+    BotCommand("set_vhf_freq", "Nustatyti VHF dažnį (nariams)"),
+    BotCommand("set_vhf_mode", "Nustatyti VHF režimą (nariams)"),
+    BotCommand("set_vhf_az", "Nustatyti VHF azimutą (nariams)"),
+    BotCommand("set_vhf_el", "Nustatyti VHF elevaciją (nariams)"),
+    BotCommand("set_hf_az", "Nustatyti HF azimutą (nariams)"),
+    BotCommand("setant", "Perjungti HF anteną (nariams)"),
+    BotCommand("moon_azel", "Nukreipti VHF antenas į Mėnulį (nariams)"),
+    BotCommand("vhf_sdr", "VHF SDR switch (nariams)"),
+    BotCommand("monitors", "Monitorių valdymas (nariams)"),
+    BotCommand("lights", "Šviesų valdymas (nariams)"),
+    BotCommand("whois", "Šaukinio informacija (nariams)"),
+    BotCommand("status", "Boto versija (nariams)"),
+    BotCommand("sveiki", "Sveiki"),
+]
+
+
+async def publish_bot_commands(application):
+    await application.bot.set_my_commands(bot_commands)
+    log.info(f"Published {len(bot_commands)} commands to the Telegram menu")
+
+
+application.post_init = publish_bot_commands
 
 if __name__ == "__main__":
     mqtt_rig_thread = Thread(target=mqtt_vhf_radio_loop, daemon=True)

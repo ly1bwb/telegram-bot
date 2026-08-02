@@ -23,6 +23,8 @@ Sveiki, radijo mėgėjai. Aš esu VU radijo klubo stoties valdymo botas. Mane ga
 * `uhf_sdr` - UHF SDR switch (tik nariams)
 * `monitors` - Monitorių valdymas (tik nariams)
 * `lights` - Šviesų valdymas (tik nariams)
+* `getant` - Pasirinkta HF antena
+* `setant` - Perjungti HF anteną (tik nariams)
 * `whois` - Šaukinio informacija (tik nariams)
 * `sveiki` - Sveiki
 

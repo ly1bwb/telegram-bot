@@ -11,22 +11,24 @@ Sveiki, radijo mėgėjai. Aš esu VU radijo klubo stoties valdymo botas. Mane ga
 * `main_camera` - Patalpos kamera
 * `window_camera` - Vaizdas pro langą
 * `rig_camera` - VHF (FT847) kamera
-* `vhf_freq` - VHF stoties dažnis
 * `vhf_azel` - VHF antenų kryptis
+* `hf_az` - HF antenų kryptis
 * `moon` - Mėnulio azimutas ir elevacija
 * `moon_azel` - Nukreipti VHF antenas į Mėnulį (tik nariams)
 * `set_vhf_az` - Nustatyti VHF antenų azimutą (tik nariams)
 * `set_vhf_el` - Nustatyti VHF antenų elevaciją (tik nariams)
-* `set_vhf_freq` - Nustatyti VHF stoties dažnį (tik nariams)
-* `set_vhf_mode` - Nustatyti VHF stoties režimą (tik nariams)
+* `set_hf_az` - Nustatyti HF antenų azimutą (tik nariams)
+* `getant` - Pasirinkta HF antena (tik nariams)
+* `setant` - Perjungti HF anteną (tik nariams)
 * `vhf_sdr` - VHF SDR switch (tik nariams)
-* `uhf_sdr` - UHF SDR switch (tik nariams)
 * `monitors` - Monitorių valdymas (tik nariams)
 * `lights` - Šviesų valdymas (tik nariams)
-* `getant` - Pasirinkta HF antena
-* `setant` - Perjungti HF anteną (tik nariams)
 * `whois` - Šaukinio informacija (tik nariams)
+* `status` - Boto versija (tik nariams)
 * `sveiki` - Sveiki
+
+Išjungtos komandos (užkomentuotos `bot.py`): `vhf_freq`, `set_vhf_freq`,
+`set_vhf_mode`, `uhf_sdr`.
 
 ## Komandų aprašymas
 

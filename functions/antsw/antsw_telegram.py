@@ -50,12 +50,14 @@ def antsw_status():
 
 async def get_ant(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     log_func("get_ant()", update)
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        message_thread_id=update.effective_message.message_thread_id,
-        text=antsw_status(),
-        parse_mode=ParseMode.HTML,
-    )
+    username = update.message.from_user["username"]
+    if await check_permissions(username, update, context):
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            message_thread_id=update.effective_message.message_thread_id,
+            text=antsw_status(),
+            parse_mode=ParseMode.HTML,
+        )
     return ConversationHandler.END
 
 

@@ -21,7 +21,7 @@ application.add_handler(CommandHandler("rig_camera", rig_camera))
 application.add_handler(CommandHandler("lower_camera", lower_camera))
 application.add_handler(CommandHandler("window_camera", window_camera))
 application.add_handler(CommandHandler("main_camera", main_camera))
-application.add_handler(CommandHandler("vhf_freq", vhf_freq))
+# application.add_handler(CommandHandler("vhf_freq", vhf_freq))
 application.add_handler(CommandHandler("vhf_azel", vhf_azel))
 application.add_handler(CommandHandler("hf_az", hf_az))
 application.add_handler(CommandHandler("moon", get_moon_vhf_azel))
@@ -30,10 +30,10 @@ application.add_handler(CommandHandler("sveiki", sveiki))
 application.add_handler(CommandHandler("status", get_status))
 application.add_handler(CommandHandler("whois", whois_qrz_query))
 application.add_handler(CommandHandler("getant", get_ant))
-application.add_handler(vhf_freq_handler)
+# application.add_handler(vhf_freq_handler)
 application.add_handler(vhf_az_handler)
 application.add_handler(vhf_el_handler)
-application.add_handler(vhf_mode_handler)
+# application.add_handler(vhf_mode_handler)
 application.add_handler(vhf_sdr_state_handler)
 # application.add_handler(uhf_sdr_state_handler)
 application.add_handler(hf_az_handler)
@@ -54,16 +54,16 @@ bot_commands = [
     BotCommand("main_camera", "Patalpos kamera"),
     BotCommand("window_camera", "Vaizdas pro langą"),
     BotCommand("rig_camera", "VHF kamera"),
-    BotCommand("vhf_freq", "VHF stoties dažnis"),
+    # BotCommand("vhf_freq", "VHF stoties dažnis"),
     BotCommand("vhf_azel", "VHF antenų kryptis"),
     BotCommand("hf_az", "HF antenų kryptis"),
-    BotCommand("getant", "Pasirinkta HF antena"),
     BotCommand("moon", "Mėnulio azimutas ir elevacija"),
-    BotCommand("set_vhf_freq", "Nustatyti VHF dažnį (nariams)"),
-    BotCommand("set_vhf_mode", "Nustatyti VHF režimą (nariams)"),
+    # BotCommand("set_vhf_freq", "Nustatyti VHF dažnį (nariams)"),
+    # BotCommand("set_vhf_mode", "Nustatyti VHF režimą (nariams)"),
     BotCommand("set_vhf_az", "Nustatyti VHF azimutą (nariams)"),
     BotCommand("set_vhf_el", "Nustatyti VHF elevaciją (nariams)"),
     BotCommand("set_hf_az", "Nustatyti HF azimutą (nariams)"),
+    BotCommand("getant", "Pasirinkta HF antena (nariams)"),
     BotCommand("setant", "Perjungti HF anteną (nariams)"),
     BotCommand("moon_azel", "Nukreipti VHF antenas į Mėnulį (nariams)"),
     BotCommand("vhf_sdr", "VHF SDR switch (nariams)"),
@@ -83,8 +83,8 @@ async def publish_bot_commands(application):
 application.post_init = publish_bot_commands
 
 if __name__ == "__main__":
-    mqtt_rig_thread = Thread(target=mqtt_vhf_radio_loop, daemon=True)
-    mqtt_rig_thread.start()
+    # mqtt_rig_thread = Thread(target=mqtt_vhf_radio_loop, daemon=True)
+    # mqtt_rig_thread.start()
 
     mqtt_vhf_rot_thread = Thread(target=mqtt_vhf_rotator_loop, daemon=True)
     mqtt_vhf_rot_thread.start()

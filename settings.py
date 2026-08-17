@@ -1,4 +1,4 @@
-VERSION = "1.8.4"
+VERSION = "1.8.5"
 
 start_text = "Labas - aš esu LY1BWB stoties botas."
 

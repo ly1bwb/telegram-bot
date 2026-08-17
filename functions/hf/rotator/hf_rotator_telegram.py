@@ -7,11 +7,15 @@ from telegram.constants import ParseMode
 
 
 async def hf_az(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    az = get_hf_rot_az()
+    if get_hf_rot_online():
+        az = get_hf_rot_az()
+        text = f"HF antenų azimutas: {az}º"
+    else:
+        text = "HF antenų kryptis nežinoma\n⚠️ Rotatorius neatsako"
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         message_thread_id=update.effective_message.message_thread_id,
-        text=f"HF antenų azimutas: {az}º",
+        text=text,
         parse_mode=ParseMode.HTML,
     )
     return ConversationHandler.END

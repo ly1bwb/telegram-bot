@@ -2,6 +2,7 @@ from functions.default import *
 from common.mqtt import *
 
 hf_rot_az = 0
+hf_rot_status = "unknown"
 
 
 def mqtt_hf_rotator_loop():
@@ -15,12 +16,19 @@ def change_hf_az(degrees):
 
 def read_mqtt_hf_rotator_az(client, userdata, message):
     global hf_rot_az
+    global hf_rot_status
     payload_value = str(message.payload.decode("utf-8"))
     if message.topic == mqtt_hf_rot_path + "/azimuth":
         hf_rot_az = payload_value
+    if message.topic == mqtt_hf_rot_path + "/status":
+        hf_rot_status = payload_value.strip().lower()
     if message.topic == mqtt_hf_rot_path + "/direction":
         pass
 
 
 def get_hf_rot_az():
     return hf_rot_az
+
+
+def get_hf_rot_online():
+    return hf_rot_status == "online"

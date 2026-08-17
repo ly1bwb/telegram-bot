@@ -3,6 +3,7 @@ from common.mqtt import *
 
 vhf_rot_az = 0
 vhf_rot_el = 0
+vhf_rot_status = "unknown"
 
 
 def mqtt_vhf_rotator_loop():
@@ -24,11 +25,14 @@ def change_vhf_el(degrees):
 def read_mqtt_vhf_rotator_azel(client, userdata, message):
     global vhf_rot_az
     global vhf_rot_el
+    global vhf_rot_status
     payload_value = str(message.payload.decode("utf-8"))
     if message.topic == mqtt_vhf_rot_path + "/azimuth":
         vhf_rot_az = payload_value
     if message.topic == mqtt_vhf_rot_path + "/elevation":
         vhf_rot_el = payload_value
+    if message.topic == mqtt_vhf_rot_path + "/status":
+        vhf_rot_status = payload_value.strip().lower()
     if message.topic == mqtt_vhf_rot_path + "/direction":
         pass
 
@@ -39,3 +43,7 @@ def get_vhf_rot_az():
 
 def get_vhf_rot_el():
     return vhf_rot_el
+
+
+def get_vhf_rot_online():
+    return vhf_rot_status == "online"

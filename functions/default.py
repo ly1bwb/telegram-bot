@@ -6,8 +6,8 @@ from telegram.ext import ContextTypes, ConversationHandler
 from common.telegram import *
 from settings import *
 
-CAM, VHF_FREQ, VHF_AZ, VHF_EL, HF_AZ, VHF_MODE, VHF_SDR_STAT, UHF_SDR_STAT, MONITORS, LIGHTS = range(
-    10
+CAM, VHF_FREQ, VHF_AZ, VHF_EL, HF_AZ, VHF_MODE, VHF_SDR_STAT, UHF_SDR_STAT, MONITORS, LIGHTS, ANTSW = range(
+    11
 )
 
 

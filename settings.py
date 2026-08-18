@@ -1,4 +1,4 @@
-VERSION = "1.8.5"
+VERSION = "1.9.0"
 
 start_text = "Labas - aš esu LY1BWB stoties botas."
 
@@ -39,3 +39,13 @@ mqtt_vhf_sdr_path = "tasmota_E65E89"
 mqtt_uhf_sdr_path = "DUMMY"
 mqtt_monitor_path = "tasmota_050E88"
 mqtt_lights_path = "tasmota_C7DD34"
+mqtt_antsw_path = "antsw"
+
+# Antenna switch positions. Keys must match the antenna numbers on the
+# AntSwitch device, names are shown in the Telegram menu.
+antsw_antennas = {
+    "1": "20/15/10m Yagi",
+    "2": "40/80m Dipole",
+    "3": "Antena 3",
+    "4": "Antena 4",
+}

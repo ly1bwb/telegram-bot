@@ -7,12 +7,16 @@ from telegram.constants import ParseMode
 
 
 async def vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    az = get_vhf_rot_az()
-    el = get_vhf_rot_el()
+    if get_vhf_rot_online():
+        az = get_vhf_rot_az()
+        el = get_vhf_rot_el()
+        text = f"VHF antenų azimutas: {az}º, elevacija: {el}º"
+    else:
+        text = "VHF antenų kryptis nežinoma\n⚠️ Rotatorius neatsako"
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         message_thread_id=update.effective_message.message_thread_id,
-        text=f"VHF antenų azimutas: {az}º, elevacija: {el}º",
+        text=text,
         parse_mode=ParseMode.HTML,
     )
     return ConversationHandler.END

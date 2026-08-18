@@ -1,3 +1,4 @@
+import asyncio
 from functions.default import *
 from common.mqtt import *
 
@@ -24,6 +25,12 @@ def read_mqtt_antsw_state(client, userdata, message):
     global antsw_enabled
     payload_value = str(message.payload.decode("utf-8"))
     if message.topic == mqtt_antsw_path + "/status/selected":
+        # Retained delivery on (re)connect isn't a real switch, don't announce it.
+        if antsw_selected != payload_value and not message.retain:
+            name = antsw_antennas.get(payload_value, f"Antena {payload_value}")
+            asyncio.run(
+                send_mqtt_state_to_telegram(f"📡 Antena perjungta į {name}", default_chat_id)
+            )
         antsw_selected = payload_value
     if message.topic == mqtt_antsw_path + "/status/name":
         antsw_name = payload_value

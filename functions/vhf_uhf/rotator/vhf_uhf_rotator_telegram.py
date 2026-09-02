@@ -7,6 +7,7 @@ from telegram.constants import ParseMode
 
 
 async def vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    log_func("vhf_azel()", update)
     if get_vhf_rot_online():
         az = get_vhf_rot_az()
         el = get_vhf_rot_el()
@@ -23,6 +24,7 @@ async def vhf_azel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 async def read_vhf_az(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    log.info("Called read_vhf_az()")
     query = update.callback_query
     await query.answer()
     username = query.from_user["username"]
@@ -76,6 +78,7 @@ async def set_vhf_az(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def read_vhf_el(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    log.info("Called read_vhf_el()")
     query = update.callback_query
     await query.answer()
     username = query.from_user["username"]

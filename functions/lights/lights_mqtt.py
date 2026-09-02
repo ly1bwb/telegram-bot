@@ -18,7 +18,7 @@ def read_mqtt_lights_state(client, userdata, message):
     global lights_state
     payload_value = str(message.payload.decode("utf-8"))
     if message.topic == "stat/" + mqtt_lights_path + "/POWER1":
-        if lights_state != payload_value:
+        if lights_state != payload_value and not message.retain:
             if payload_value == "ON":
                 msg = "Įjungti"
             else:

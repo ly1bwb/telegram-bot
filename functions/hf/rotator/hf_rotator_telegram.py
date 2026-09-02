@@ -7,6 +7,7 @@ from telegram.constants import ParseMode
 
 
 async def hf_az(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    log_func("hf_az()", update)
     if get_hf_rot_online():
         az = get_hf_rot_az()
         text = f"HF antenų azimutas: {az}º"
@@ -22,6 +23,7 @@ async def hf_az(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 async def read_hf_az(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    log.info("Called read_hf_az()")
     query = update.callback_query
     await query.answer()
     username = query.from_user["username"]

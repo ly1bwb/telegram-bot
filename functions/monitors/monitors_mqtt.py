@@ -18,7 +18,7 @@ def read_mqtt_monitors_state(client, userdata, message):
     global monitors_state
     payload_value = str(message.payload.decode("utf-8"))
     if message.topic == "stat/" + mqtt_monitor_path + "/POWER":
-        if monitors_state != payload_value:
+        if monitors_state != payload_value and not message.retain:
             if payload_value == "ON":
                 msg = "Įjungti"
             else:

@@ -6,6 +6,7 @@ from telegram.constants import ParseMode
 
 
 async def vhf_freq(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    log_func("vhf_freq()", update)
     ff = format_frequency(get_vhf_rig_freq())
     src_mode = get_vhf_rig_mode()
     if src_mode == "FM":

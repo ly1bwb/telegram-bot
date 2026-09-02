@@ -10,6 +10,7 @@ import maidenhead as mh
 
 from settings import *
 from common.telegram import check_permissions
+from functions.default import log, log_func
 from functions.vhf_uhf.rotator.vhf_uhf_rotator_mqtt import change_vhf_az
 
 
@@ -39,6 +40,7 @@ def get_moon_azel(qth):
 async def calculate_azimuth_by_loc(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> int:
+    log_func("calculate_azimuth_by_loc()", update)
     loc = update.message.text
     deg, dist = angle_distance_qth(loc)
     deg = round(deg)
@@ -58,6 +60,7 @@ async def calculate_azimuth_by_loc(
 async def handle_geo_az_callback(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> int:
+    log.info("Called handle_geo_az_callback()")
     query = update.callback_query
     await query.answer()
     username = query.from_user["username"]

@@ -25,6 +25,13 @@ log.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
+# Drop only successful getUpdates polls; a failing one still logs.
+logging.getLogger("httpx").addFilter(
+    lambda record: not (
+        "getUpdates" in record.getMessage() and "200 OK" in record.getMessage()
+    )
+)
+
 
 def log_func(name, update):
     log.info(f"Called {name} by {update.message.from_user['username']}")

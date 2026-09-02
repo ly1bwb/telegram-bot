@@ -18,7 +18,7 @@ def read_mqtt_vhf_sdr_state(client, userdata, message):
     global vhf_sdr_state
     payload_value = str(message.payload.decode("utf-8"))
     if message.topic == "stat/" + mqtt_vhf_sdr_path + "/POWER1":
-        if vhf_sdr_state != payload_value:
+        if vhf_sdr_state != payload_value and not message.retain:
             if payload_value == "ON":
                 msg = "Įjungtas"
             else:
